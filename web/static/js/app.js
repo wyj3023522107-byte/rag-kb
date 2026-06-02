@@ -36,8 +36,18 @@ const historyList = document.getElementById('historyList');
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
-    // 获取或创建会话ID
-    sessionId = getOrCreateSessionId();
+    // 检查URL参数，是否需要新建对话
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('new') === 'true') {
+        // 清除旧会话，创建新会话
+        sessionId = generateSessionId();
+        localStorage.setItem('chat_session_id', sessionId);
+        // 清除URL参数
+        window.history.replaceState({}, '', '/');
+    } else {
+        // 获取或创建会话ID
+        sessionId = getOrCreateSessionId();
+    }
 
     // 绑定事件
     sendBtn.addEventListener('click', sendMessage);
