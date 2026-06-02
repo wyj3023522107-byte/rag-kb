@@ -12,6 +12,9 @@ from pathlib import Path
 
 def load_env():
     """加载环境变量"""
+    # 设置HuggingFace镜像（国内加速）
+    os.environ["HF_ENDPOINT"] = os.environ.get("HF_ENDPOINT", "https://hf-mirror.com")
+
     env_file = Path(__file__).parent / ".env"
     if env_file.exists():
         with open(env_file, "r", encoding="utf-8") as f:

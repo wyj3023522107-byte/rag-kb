@@ -101,10 +101,13 @@ class KnowledgeManager:
             "doc_id": doc_id,
             "filename": filename,
             "subject": subject,
-            "grade_range": grade_range or [],
             "title": title or filename,
-            "keywords": keywords or []
         }
+        # ChromaDB不接受空列表，只有非空时才添加
+        if grade_range:
+            metadata["grade_range"] = grade_range
+        if keywords:
+            metadata["keywords"] = keywords
 
         chunks = self.splitter.split(text, metadata)
 
