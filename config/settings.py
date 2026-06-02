@@ -6,13 +6,9 @@ from typing import List
 class Settings(BaseSettings):
     """应用配置"""
 
-    # 应用信息
-    APP_NAME: str = "K12智能学习助手"
-    APP_VERSION: str = "1.0.0"
-    DEBUG: bool = False
-
     # LLM配置
     DASHSCOPE_API_KEY: str = Field(..., env="DASHSCOPE_API_KEY")
+    # 优先使用env 变量配置模型
     CHAT_MODEL: str = "qwen-plus"
     EMBEDDING_MODEL: str = "text-embedding-v2"
 
@@ -35,26 +31,7 @@ class Settings(BaseSettings):
 
     # 日志配置
     LOG_LEVEL: str = "INFO"
-
-    # 支持的学科
-    SUBJECTS: List[str] = [
-        "语文", "数学", "英语", "物理", "化学",
-        "生物", "历史", "地理", "政治"
-    ]
-
-    # 支持的年级
-    GRADES: List[str] = [
-        "小学", "初一", "初二", "初三",
-        "高一", "高二", "高三"
-    ]
-
-    # 意图类型
-    INTENTS: List[str] = [
-        "study_qa",
-        "homework_help",
-        "emotion_support",
-        "chitchat"
-    ]
+    APP_LOG_FILE: str = "./logs/app.log"
 
     class Config:
         env_file = ".env"
