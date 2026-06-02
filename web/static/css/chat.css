@@ -374,3 +374,108 @@
     background-color: rgba(255, 255, 255, 0.15);
     border-radius: 2px;
 }
+
+/* ===== 表格样式 ===== */
+.message-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.9em;
+    background-color: var(--card-bg);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.message-content table th,
+.message-content table td {
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border-color);
+}
+
+.message-content table th {
+    background-color: rgba(224, 123, 84, 0.1);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.message-content table tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.message-content table tr:hover {
+    background-color: rgba(224, 123, 84, 0.05);
+}
+
+/* ===== 数学公式样式 ===== */
+.message-content .math-block {
+    display: block;
+    text-align: center;
+    padding: 16px;
+    margin: 14px 0;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius);
+    overflow-x: auto;
+}
+
+.message-content .math-error {
+    color: #e74c3c;
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+/* KaTeX 样式覆盖 */
+.message-content .katex {
+    font-size: 1.05em;
+}
+
+.message-content .katex-display {
+    margin: 14px 0;
+    overflow-x: auto;
+    padding: 10px 0;
+}
+
+.message-content .katex-display > .katex {
+    white-space: normal;
+}
+
+/* ===== 列表样式优化 ===== */
+.message-content ul,
+.message-content ol {
+    margin: 10px 0;
+    padding-left: 24px;
+}
+
+.message-content li {
+    margin: 6px 0;
+    line-height: 1.6;
+}
+
+.message-content ul li {
+    list-style-type: disc;
+}
+
+.message-content ol li {
+    list-style-type: decimal;
+}
+
+/* ===== 引用样式 ===== */
+.message-content blockquote {
+    margin: 14px 0;
+    padding: 10px 16px;
+    border-left: 4px solid var(--primary-color);
+    background-color: rgba(0, 0, 0, 0.03);
+    color: var(--text-secondary);
+    border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.message-content blockquote p {
+    margin: 0;
+}
+
+/* ===== 分割线 ===== */
+.message-content hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 18px 0;
+}
+
