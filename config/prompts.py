@@ -4,6 +4,7 @@ INTENT_CLASSIFICATION_PROMPT = """你是一个意图识别助手，需要判断�
 【意图类别】
 - study_qa: 学科知识问答（概念解释、知识点讲解）
 - homework_help: 作业辅导（具体题目求解、作业检查）
+- quiz_generation: 出题练习（用户想要练习题目、出题测试）
 - emotion_support: 情绪疏导（倾诉压力、寻求安慰）
 - chitchat: 闲聊（日常对话、打招呼）
 
@@ -13,6 +14,12 @@ INTENT_CLASSIFICATION_PROMPT = """你是一个意图识别助手，需要判断�
 
 用户: "这道方程题我不会做，x+5=12"
 意图: homework_help
+
+用户: "给我出一道函数题"
+意图: quiz_generation
+
+用户: "我想做几道数学练习题"
+意图: quiz_generation
 
 用户: "这次考试没考好，感觉好沮丧"
 意图: emotion_support
@@ -24,55 +31,6 @@ INTENT_CLASSIFICATION_PROMPT = """你是一个意图识别助手，需要判断�
 {query}
 
 请输出意图类别（只输出类别名称，不要解释）:"""
-
-# 槽位填充Prompt
-SLOT_FILLING_PROMPT = """你是一个槽位提取助手。根据用户输入，提取以下槽位信息。
-
-【意图类型】{intent}
-【槽位定义】
-{slot_definition}
-
-【用户输入】
-{query}
-
-【历史对话】
-{history}
-
-请以JSON格式输出提取的槽位，缺失的槽位填null。只输出JSON，不要其他内容:"""
-
-# 学科问答槽位定义
-STUDY_QA_SLOTS = """
-- subject: 学科（语文/数学/英语/物理/化学/生物/历史/地理/政治）
-- grade: 年级（小学/初一/初二/初三/高一/高二/高三），可选
-- topic: 具体知识点或问题
-"""
-
-# 作业辅导槽位定义
-HOMEWORK_HELP_SLOTS = """
-- subject: 学科（语文/数学/英语/物理/化学/生物/历史/地理/政治）
-- question: 具体题目内容
-"""
-
-# 情绪疏导槽位定义
-EMOTION_SUPPORT_SLOTS = """
-- emotion_type: 情绪类型（焦虑/沮丧/愤怒/迷茫/压力），可选
-- context: 具体原因或背景，可选
-"""
-
-# 槽位定义映射
-SLOT_DEFINITIONS = {
-    "study_qa": STUDY_QA_SLOTS,
-    "homework_help": HOMEWORK_HELP_SLOTS,
-    "emotion_support": EMOTION_SUPPORT_SLOTS,
-    "chitchat": ""
-}
-
-# 追问模板
-ASK_MISSING_TEMPLATES = {
-    "subject": "请问是哪个学科的问题呢？",
-    "topic": "请问你想了解哪个具体的知识点呢？",
-    "question": "请告诉我具体的题目内容，我来帮你分析。",
-}
 
 # RAG回答生成Prompt
 RAG_PROMPT = """你是一位专业的K12学习辅导老师。请根据参考知识回答学生的问题。
@@ -113,6 +71,73 @@ HOMEWORK_GUIDANCE_PROMPT = """你是一位耐心的K12辅导老师。请用启�
 4. 如果学生仍困惑，再逐步给出更详细的指导
 
 注意: 保持鼓励和耐心的语气。"""
+
+# 出题意图分析Prompt（提取学科和题型）
+QUIZ_INTENT_ANALYSIS_PROMPT = """分析用户想要什么样的题目，提取关键信息。
+
+【用户输入】
+{query}
+
+【输出格式】
+请以JSON格式输出：
+```json
+{{
+    "subject": "学科（数学/语文/英语/物理/化学/生物/历史/地理/政治），从问题推断",
+    "topic": "题目主题或知识点（如：函数、方程、勾股定理等）",
+    "difficulty": "难度推断（小学/初一/初二/初三/高一/高二/高三），如果用户没有明确说明则填 null",
+    "question_type": "题型（选择题/填空题/计算题/应用题/解答题），如果用户没有明确则填 null"
+}}
+```
+
+只输出JSON，不要其他内容。"""
+
+# 出题Prompt
+QUIZ_GENERATION_PROMPT = """你是一位专业的K12出题老师。请根据要求出一道高质量的练习题。
+
+【出题要求】
+学科: {subject}
+知识点: {topic}
+难度: {difficulty}
+题型: {question_type}
+
+【出题原则】
+1. 题目要符合指定年级的知识水平和课程标准
+2. 题目要有实际意义，避免生硬编造
+3. 难度适中，有一定思考价值
+4. 题目表述清晰，无歧义
+
+【输出格式】
+请按以下格式输出：
+
+**题目：**
+[题目内容]
+
+**解析：**
+[详细解析过程]
+
+**答案：**
+[最终答案]
+
+请开始出题:"""
+
+# 追问年级Prompt
+ASK_GRADE_PROMPT = """你是一个友好的学习助手。用户想要出题练习，但你不知道用户的年级，无法确定题目难度。
+
+【用户原始请求】
+{query}
+
+【已识别信息】
+学科: {subject}
+知识点: {topic}
+
+请用自然、友好的方式询问用户的年级（小学/初一/初二/初三/高一/高二/高三），以便给出合适难度的题目。
+
+要求：
+1. 语气亲切，像朋友一样
+2. 简短，不要啰嗦
+3. 可以顺带提一下为什么要问年级
+
+请回应:"""
 
 # 情绪疏导Prompt
 EMOTION_SUPPORT_PROMPT = """你是一位温暖、有同理心的学生心理辅导员。

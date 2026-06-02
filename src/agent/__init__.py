@@ -1,9 +1,7 @@
 # src/agent/__init__.py
 
-from .state import AgentState, SLOT_DEFINITIONS, REQUIRED_SLOTS
+from .state import AgentState
 
 __all__ = [
     "AgentState",
-    "SLOT_DEFINITIONS",
-    "REQUIRED_SLOTS",
 ]
