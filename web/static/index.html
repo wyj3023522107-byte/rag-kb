@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K12智能学习助手</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/chat.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">🎓 K12学习助手</h1>
+            </div>
+
+            <button class="new-chat-btn" id="newChatBtn">
+                <span>➕</span> 新建对话
+            </button>
+
+            <nav class="nav-menu">
+                <a href="/" class="nav-item active">
+                    <span>💬</span> 对话
+                </a>
+                <a href="/knowledge" class="nav-item">
+                    <span>📚</span> 知识库
+                </a>
+            </nav>
+
+            <div class="history-section">
+                <h3>历史对话</h3>
+                <ul class="history-list" id="historyList">
+                    <!-- 动态加载 -->
+                </ul>
+            </div>
+        </aside>
+
+        <!-- 主聊天区域 -->
+        <main class="chat-main">
+            <header class="chat-header">
+                <h2>学习助手</h2>
+                <div class="header-actions">
+                    <button id="clearBtn" class="icon-btn" title="清空对话">🗑️</button>
+                </div>
+            </header>
+
+            <!-- 消息区域 -->
+            <div class="messages-container" id="messagesContainer">
+                <!-- 欢迎消息 -->
+                <div class="welcome-message">
+                    <div class="welcome-icon">🎓</div>
+                    <h2>你好，我是K12学习助手</h2>
+                    <p>我可以帮你解答学科问题、辅导作业、疏导情绪</p>
+                    <div class="quick-actions">
+                        <button class="quick-btn" data-query="请帮我讲解勾股定理">
+                            📐 勾股定理讲解
+                        </button>
+                        <button class="quick-btn" data-query="这道方程题怎么做：2x + 5 = 13">
+                            ✏️ 作业辅导
+                        </button>
+                        <button class="quick-btn" data-query="最近学习压力有点大">
+                            💚 情绪疏导
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea
+                        id="messageInput"
+                        placeholder="请输入你的问题..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendBtn" class="send-btn">
+                        <span>发送</span>
+                    </button>
+                </div>
+                <p class="input-hint">按 Enter 发送，Shift + Enter 换行</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/markdown.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
