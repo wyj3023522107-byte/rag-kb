@@ -28,9 +28,9 @@ def chat():
 
 async def _chat_loop():
     """对话循环"""
-    from src.agent.graph import get_agent
+    from src.services.chat_service import get_chat_service
 
-    agent = get_agent()
+    service = get_chat_service()
     session_id = None
 
     while True:
@@ -45,15 +45,16 @@ async def _chat_loop():
             if not query.strip():
                 continue
 
-            # 调用Agent
-            with console.status("[bold green]思考中...[/bold green]"):
-                result = await agent.run(query, session_id)
-                session_id = result["session_id"]
+            # 调用服务（流式输出）
+            console.print("\n[bold green]助手:[/bold green] ", end="")
 
-            # 显示响应
-            console.print("\n[bold green]助手:[/bold green]")
-            console.print(Markdown(result["response"]))
-            console.print()
+            async for data in service.chat(query, session_id, stream=True):
+                if data["type"] == "session":
+                    session_id = data["session_id"]
+                elif data["type"] == "content":
+                    print(data["content"], end="", flush=True)
+
+            console.print("\n")
 
         except KeyboardInterrupt:
             console.print("\n[yellow]再见！[/yellow]")

@@ -18,36 +18,44 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     intent: Optional[str] = None
-    slots: Optional[dict] = None
     session_id: str
 
 
 @router.post("/", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """发送消息（非流式）"""
-    from src.agent.graph import get_agent
+    from src.services.chat_service import get_chat_service
 
-    agent = get_agent()
-    result = await agent.run(request.message, request.session_id)
+    service = get_chat_service()
+    full_response = ""
+    intent = None
+    session_id = None
+
+    async for data in service.chat(request.message, request.session_id, stream=False):
+        if data["type"] == "session":
+            session_id = data["session_id"]
+        elif data["type"] == "intent":
+            intent = data["intent"]
+        elif data["type"] == "content":
+            full_response = data["content"]
 
     return ChatResponse(
-        response=result["response"],
-        intent=result.get("intent"),
-        slots=result.get("slots"),
-        session_id=result["session_id"]
+        response=full_response,
+        intent=intent,
+        session_id=session_id
     )
 
 
 @router.post("/stream")
 async def chat_stream(request: ChatRequest):
     """发送消息（流式输出）"""
-    from src.services.streaming import get_streaming_service
+    from src.services.chat_service import get_chat_service
 
-    service = get_streaming_service()
+    service = get_chat_service()
 
     async def generate() -> AsyncGenerator[str, None]:
         try:
-            async for data in service.chat_stream(request.message, request.session_id):
+            async for data in service.chat(request.message, request.session_id, stream=True):
                 yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
