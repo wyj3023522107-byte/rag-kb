@@ -5,11 +5,13 @@ from loguru import logger
 
 from .base import BaseTool, ToolResult
 from .time_tool import TimeTool
+from .holiday_tool import HolidayTool
 
 
 # 注册所有工具
 TOOLS: Dict[str, Type[BaseTool]] = {
     "get_current_time": TimeTool,
+    "get_holiday_date": HolidayTool,
 }
 
 

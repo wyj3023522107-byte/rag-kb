@@ -11,7 +11,13 @@ class TimeTool(BaseTool):
     """获取时间工具"""
 
     name = "get_current_time"
-    description = "获取日期和时间信息。可以查询当前时间、今天/明天/昨天/后天/大后天的日期和星期。"
+    description = """获取日期和时间信息。
+
+可以查询：
+- 当前时间：现在几点、当前时间
+- 相对日期：今天/明天/昨天/后天/大后天是几号、星期几
+
+此工具返回真实的日期时间，可用于推算其他信息。"""
     parameters = [
         ToolParameter(
             name="format",
