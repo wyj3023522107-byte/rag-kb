@@ -35,7 +35,6 @@ class Settings(BaseSettings):
 
     # 日志配置
     LOG_LEVEL: str = "INFO"
-    LOG_FILE: str = "./logs/app.log"
 
     # 支持的学科
     SUBJECTS: List[str] = [
