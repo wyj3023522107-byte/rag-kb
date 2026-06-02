@@ -1,7 +1,7 @@
 [project]
-name = "k12-study-assistant"
+name = "rag-kb"
 version = "1.0.0"
-description = "K12智能学习助手系统"
+description = "基于 LangGraph 的教育问答 Agent，支持意图识别、混合检索、RAG 生成"
 requires-python = ">=3.10"
 
 dependencies = [

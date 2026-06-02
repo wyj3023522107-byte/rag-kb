@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-K12智能学习助手 - 启动脚本
+RAG-KB - 基于 LangGraph 的教育问答 Agent
 """
 
 import os
@@ -61,7 +61,7 @@ def create_directories():
 def start_web(host: str = "0.0.0.0", port: int = 8000):
     """启动Web服务"""
     print("\n" + "=" * 50)
-    print("  K12智能学习助手")
+    print("  RAG-KB 教育问答 Agent")
     print("=" * 50)
     print()
 
@@ -101,7 +101,7 @@ def start_cli():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="K12智能学习助手启动脚本",
+        description="RAG-KB 教育问答 Agent 启动脚本",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
