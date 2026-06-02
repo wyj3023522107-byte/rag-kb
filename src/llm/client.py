@@ -1,3 +1,4 @@
+import os
 from langchain_community.llms import Tongyi
 from typing import Optional, List
 from loguru import logger
@@ -17,6 +18,9 @@ class LLMClient:
         self.model_name = model_name or settings.CHAT_MODEL
         self.temperature = temperature or settings.TEMPERATURE
         self.max_tokens = max_tokens or settings.MAX_TOKENS
+
+        # 设置环境变量供dashscope使用
+        os.environ["DASHSCOPE_API_KEY"] = settings.DASHSCOPE_API_KEY
 
         self._client = Tongyi(
             model_name=self.model_name,

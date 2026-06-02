@@ -1,3 +1,4 @@
+import os
 from langchain_community.embeddings import DashScopeEmbeddings
 from typing import List, Optional
 from loguru import logger
@@ -10,6 +11,9 @@ class EmbeddingClient:
 
     def __init__(self, model_name: Optional[str] = None):
         self.model_name = model_name or settings.EMBEDDING_MODEL
+
+        # 设置环境变量供dashscope使用
+        os.environ["DASHSCOPE_API_KEY"] = settings.DASHSCOPE_API_KEY
 
         self._client = DashScopeEmbeddings(
             model=self.model_name,

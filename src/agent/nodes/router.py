@@ -6,10 +6,11 @@ from loguru import logger
 from src.agent.state import AgentState
 
 
-def router_node(state: AgentState) -> str:
-    """路由节点 - 返回下一个节点名称"""
+def router_node(state: AgentState) -> Dict[str, Any]:
+    """路由节点 - 透传状态，实际路由由条件边函数决定"""
     intent = state.get("intent", "chitchat")
 
     logger.info(f"路由到: {intent}")
 
-    return intent
+    # 节点必须返回dict，路由决策由conditional_edges的lambda函数完成
+    return {}

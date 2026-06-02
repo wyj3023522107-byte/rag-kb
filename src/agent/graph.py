@@ -138,7 +138,7 @@ class AgentGraph:
         # 从会话获取历史
         if session.messages:
             initial_state["history"] = [
-                {"role": msg.role, "content": msg.content}
+                {"role": msg["role"], "content": msg["content"]}
                 for msg in session.messages[-10:]  # 最近5轮
             ]
 
