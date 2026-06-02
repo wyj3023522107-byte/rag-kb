@@ -1,12 +1,38 @@
 from whoosh.index import create_in, exists_in, open_dir
 from whoosh.fields import Schema, TEXT, ID, KEYWORD
 from whoosh.qparser import QueryParser, OrGroup
-from whoosh.analysis import ChineseAnalyzer
+from whoosh.analysis import Tokenizer, Token
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 from loguru import logger
+import jieba
 
 from config.settings import settings
+
+
+class ChineseTokenizer(Tokenizer):
+    """中文分词器"""
+
+    def __call__(self, value, positions=False, chars=False, keep_original=False, removestops=True,
+                 start_pos=0, start_char=0, mode='', **kwargs):
+        words = jieba.cut(value, cut_all=False)
+        pos = start_pos
+        char_pos = start_char
+        token = Token(positions, chars, removestops=mode, mode=mode)
+        for word in words:
+            if word.strip():
+                token.text = word
+                token.pos = pos
+                token.startchar = char_pos
+                token.endchar = char_pos + len(word)
+                yield token
+                pos += 1
+                char_pos += len(word)
+
+
+def ChineseAnalyzer():
+    """中文分析器工厂函数"""
+    return ChineseTokenizer()
 
 
 class KeywordIndex:
