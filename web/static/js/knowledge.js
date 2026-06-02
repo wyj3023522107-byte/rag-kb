@@ -19,6 +19,16 @@ let selectedFile = null;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
+    // 新建对话按钮 - 清除旧会话ID
+    const newChatBtn = document.getElementById('newChatBtn');
+    if (newChatBtn) {
+        newChatBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('chat_session_id');
+            window.location.href = '/';
+        });
+    }
+
     // 上传区域点击
     uploadArea.addEventListener('click', () => fileInput.click());
 
