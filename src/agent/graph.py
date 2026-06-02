@@ -147,18 +147,22 @@ class AgentGraph:
 
         # 更新会话
         session.touch()
-        session.messages.append({
-            "role": "user",
-            "content": query,
-            "intent": result.get("intent")
-        })
+
+        # 保存消息到数据库
+        self._session_manager.save_message(
+            session.session_id,
+            "user",
+            query,
+            result.get("intent")
+        )
 
         response = result.get("response") or result.get("ask_question", "抱歉，我无法理解您的问题。")
 
-        session.messages.append({
-            "role": "assistant",
-            "content": response
-        })
+        self._session_manager.save_message(
+            session.session_id,
+            "assistant",
+            response
+        )
 
         return {
             "response": response,

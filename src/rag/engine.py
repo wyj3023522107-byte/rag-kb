@@ -75,9 +75,12 @@ class RAGEngine:
         docs = await self.retrieve(query, top_k=top_k, subject=subject)
 
         if not docs:
-            return "抱歉，我没有找到相关的知识来回答这个问题。请尝试换一种方式提问。"
+            # 知识库无相关内容，使用大模型通用知识回答
+            logger.info("知识库无相关内容，使用大模型通用知识回答")
+            response = await self.generator.generate_without_context(query, subject, grade)
+            return response
 
-        # 生成回答
+        # 有知识库参考，生成回答
         response = await self.generator.generate(query, docs, subject, grade)
 
         return response
