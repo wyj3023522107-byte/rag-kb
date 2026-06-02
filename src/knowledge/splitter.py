@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from loguru import logger
 
 from config.settings import settings
