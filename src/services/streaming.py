@@ -7,7 +7,11 @@ from loguru import logger
 from src.llm.client import get_llm_client
 from src.conversation.session import get_session_manager
 from src.agent.tools import get_tool_manager
-from config.prompts import CHITCHAT_PROMPT, EMOTION_SUPPORT_PROMPT, TOOL_RESULT_PROMPT, TOOL_DECISION_PROMPT
+from src.rag.engine import get_rag_engine
+from config.prompts import (
+    CHITCHAT_PROMPT, EMOTION_SUPPORT_PROMPT, TOOL_RESULT_PROMPT,
+    TOOL_DECISION_PROMPT, HOMEWORK_GUIDANCE_PROMPT
+)
 
 
 class StreamingChatService:
@@ -17,12 +21,19 @@ class StreamingChatService:
         self._session_manager = get_session_manager()
         self._tool_manager = get_tool_manager()
         self._llm_client = None
+        self._rag_engine = None
 
     @property
     def llm_client(self):
         if self._llm_client is None:
             self._llm_client = get_llm_client()
         return self._llm_client
+
+    @property
+    def rag_engine(self):
+        if self._rag_engine is None:
+            self._rag_engine = get_rag_engine()
+        return self._rag_engine
 
     async def _decide_tool(self, query: str) -> Optional[Dict[str, Any]]:
         """让LLM决定是否需要调用工具"""
@@ -121,13 +132,30 @@ class StreamingChatService:
 
         yield {"type": "intent", "intent": intent}
 
-        # 4. 流式生成响应
-        prompt = self._build_prompt(query, intent)
+        # 4. 根据意图选择处理方式
         full_response = ""
 
-        async for chunk in self.llm_client.stream(prompt):
-            full_response += chunk
-            yield {"type": "content", "content": chunk}
+        if intent == "study_qa":
+            # 学科问答：调用RAG检索知识库
+            full_response = await self._handle_study_qa(query)
+
+        elif intent == "homework_help":
+            # 作业辅导：RAG检索 + 引导式教学
+            full_response = await self._handle_homework(query)
+
+        elif intent == "emotion_support":
+            # 情绪疏导：专门的情感支持prompt
+            full_response = await self._handle_emotion(query)
+
+        else:
+            # 闲聊：流式生成
+            async for chunk in self.llm_client.stream(CHITCHAT_PROMPT.format(query=query)):
+                full_response += chunk
+                yield {"type": "content", "content": chunk}
+
+        # 对于非流式的处理结果，一次性返回
+        if intent in ["study_qa", "homework_help", "emotion_support"]:
+            yield {"type": "content", "content": full_response}
 
         # 5. 保存消息
         self._session_manager.save_message(session.session_id, "user", query, intent)
@@ -135,12 +163,35 @@ class StreamingChatService:
 
         yield {"type": "done"}
 
-    def _build_prompt(self, query: str, intent: str, _history: list = None) -> str:
-        """构建prompt"""
-        if intent == "emotion_support":
-            return EMOTION_SUPPORT_PROMPT.format(query=query)
-        else:
-            return CHITCHAT_PROMPT.format(query=query)
+    async def _handle_study_qa(self, query: str) -> str:
+        """处理学科问答"""
+        logger.info(f"学科问答处理: {query[:50]}...")
+        # 调用RAG引擎检索并生成回答
+        response = await self.rag_engine.generate(query=query, top_k=3)
+        return response
+
+    async def _handle_homework(self, query: str) -> str:
+        """处理作业辅导"""
+        logger.info(f"作业辅导处理: {query[:50]}...")
+        # 检索相关知识点
+        docs = await self.rag_engine.retrieve(query, top_k=2)
+        knowledge_context = "\n".join([doc["content"] for doc in docs]) if docs else "暂无相关知识点"
+
+        # 使用引导式教学prompt
+        prompt = HOMEWORK_GUIDANCE_PROMPT.format(
+            subject="综合",
+            question=query,
+            knowledge_context=knowledge_context
+        )
+        response = await self.llm_client.generate(prompt)
+        return response
+
+    async def _handle_emotion(self, query: str) -> str:
+        """处理情绪疏导"""
+        logger.info(f"情绪疏导处理: {query[:50]}...")
+        prompt = EMOTION_SUPPORT_PROMPT.format(query=query, emotion_type="压力")
+        response = await self.llm_client.generate(prompt)
+        return response
 
 
 # 全局实例
