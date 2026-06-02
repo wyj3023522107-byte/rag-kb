@@ -46,12 +46,28 @@ async def get_history(session_id: str):
     session = manager.get(session_id)
 
     if not session:
-        raise HTTPException(status_code=404, detail="会话不存在")
+        return {"history": []}  # 返回空历史而不是404
 
-    return {"history": [
-        {"role": msg.role, "content": msg.content}
-        for msg in session.messages
-    ]}
+    # 支持dict格式和对象格式
+    messages = []
+    for msg in session.messages:
+        if isinstance(msg, dict):
+            messages.append({"role": msg["role"], "content": msg["content"]})
+        else:
+            messages.append({"role": msg.role, "content": msg.content})
+
+    return {"history": messages}
+
+
+@router.get("/sessions")
+async def list_sessions(limit: int = 20):
+    """列出最近的会话"""
+    from src.conversation.session import get_session_manager
+
+    manager = get_session_manager()
+    sessions = manager.list_recent(limit)
+
+    return {"sessions": sessions}
 
 
 @router.delete("/history/{session_id}")

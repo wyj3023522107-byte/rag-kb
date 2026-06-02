@@ -37,9 +37,10 @@ class SessionManager:
             self._db = get_session_db()
             logger.info("会话管理器已启用数据库持久化")
 
-    def create(self) -> Session:
+    def create(self, session_id: str = None) -> Session:
         """创建新会话"""
-        session_id = f"session_{uuid.uuid4().hex[:12]}"
+        if session_id is None:
+            session_id = f"session_{uuid.uuid4().hex[:12]}"
         session = Session(session_id=session_id)
 
         self._sessions[session_id] = session
@@ -81,6 +82,8 @@ class SessionManager:
             session = self.get(session_id)
             if session:
                 return session
+            # 如果session不存在，用指定的ID创建
+            return self.create(session_id)
         return self.create()
 
     def save_message(self, session_id: str, role: str, content: str, intent: str = None):

@@ -28,7 +28,8 @@ class SessionDB:
                 session_id TEXT PRIMARY KEY,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
-                context TEXT DEFAULT '{}'
+                context TEXT DEFAULT '{}',
+                title TEXT DEFAULT ''
             )
         """)
 
@@ -49,13 +50,14 @@ class SessionDB:
         logger.info(f"会话数据库初始化完成: {self.db_path}")
 
     def create_session(self, session_id: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """创建会话"""
+        """创建会话（如果已存在则忽略）"""
         now = datetime.now().isoformat()
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
+        # 使用 INSERT OR IGNORE 避免重复创建
         cursor.execute(
-            "INSERT INTO sessions (session_id, created_at, updated_at, context) VALUES (?, ?, ?, ?)",
+            "INSERT OR IGNORE INTO sessions (session_id, created_at, updated_at, context) VALUES (?, ?, ?, ?)",
             (session_id, now, now, json.dumps(context or {}, ensure_ascii=False))
         )
 
@@ -76,7 +78,7 @@ class SessionDB:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT session_id, created_at, updated_at, context FROM sessions WHERE session_id = ?",
+            "SELECT session_id, created_at, updated_at, context, title FROM sessions WHERE session_id = ?",
             (session_id,)
         )
         row = cursor.fetchone()
@@ -102,6 +104,7 @@ class SessionDB:
             "created_at": row[1],
             "updated_at": row[2],
             "context": json.loads(row[3]),
+            "title": row[4] or "",
             "messages": messages
         }
 
@@ -142,6 +145,21 @@ class SessionDB:
             (timestamp, session_id)
         )
 
+        # 如果是第一条用户消息，设置为标题
+        if role == "user":
+            cursor.execute(
+                "SELECT COUNT(*) FROM messages WHERE session_id = ? AND role = 'user'",
+                (session_id,)
+            )
+            user_msg_count = cursor.fetchone()[0]
+            if user_msg_count == 1:
+                # 截取前30个字符作为标题
+                title = content[:30] + ("..." if len(content) > 30 else "")
+                cursor.execute(
+                    "UPDATE sessions SET title = ? WHERE session_id = ?",
+                    (title, session_id)
+                )
+
         conn.commit()
         conn.close()
 
@@ -165,12 +183,17 @@ class SessionDB:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT session_id, created_at, updated_at FROM sessions ORDER BY updated_at DESC LIMIT ?",
+            "SELECT session_id, created_at, updated_at, title FROM sessions ORDER BY updated_at DESC LIMIT ?",
             (limit,)
         )
 
         sessions = [
-            {"session_id": row[0], "created_at": row[1], "updated_at": row[2]}
+            {
+                "session_id": row[0],
+                "created_at": row[1],
+                "updated_at": row[2],
+                "title": row[3] or "新对话"
+            }
             for row in cursor.fetchall()
         ]
 

@@ -25,6 +25,12 @@ const api = {
         return response.json();
     },
 
+    // 获取会话列表
+    async getSessions(limit = 20) {
+        const response = await fetch(`${API_BASE}/chat/sessions?limit=${limit}`);
+        return response.json();
+    },
+
     // 清空历史
     async clearHistory(sessionId) {
         const response = await fetch(`${API_BASE}/chat/history/${sessionId}`, {
