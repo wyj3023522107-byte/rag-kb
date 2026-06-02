@@ -227,3 +227,17 @@
     0%, 60%, 100% { transform: translateY(0); }
     30% { transform: translateY(-10px); }
 }
+
+/* ===== 流式输出光标 ===== */
+.cursor {
+    display: inline-block;
+    animation: blink 0.8s infinite;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}

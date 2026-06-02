@@ -3,8 +3,9 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, AsyncGenerator
 import json
+import asyncio
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -23,7 +24,7 @@ class ChatResponse(BaseModel):
 
 @router.post("/", response_model=ChatResponse)
 async def chat(request: ChatRequest):
-    """发送消息"""
+    """发送消息（非流式）"""
     from src.agent.graph import get_agent
 
     agent = get_agent()
@@ -37,6 +38,30 @@ async def chat(request: ChatRequest):
     )
 
 
+@router.post("/stream")
+async def chat_stream(request: ChatRequest):
+    """发送消息（流式输出）"""
+    from src.services.streaming import get_streaming_service
+
+    service = get_streaming_service()
+
+    async def generate() -> AsyncGenerator[str, None]:
+        try:
+            async for data in service.chat_stream(request.message, request.session_id):
+                yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        }
+    )
+
+
 @router.get("/history/{session_id}")
 async def get_history(session_id: str):
     """获取对话历史"""
@@ -46,9 +71,8 @@ async def get_history(session_id: str):
     session = manager.get(session_id)
 
     if not session:
-        return {"history": []}  # 返回空历史而不是404
+        return {"history": []}
 
-    # 支持dict格式和对象格式
     messages = []
     for msg in session.messages:
         if isinstance(msg, dict):

@@ -90,26 +90,52 @@ class MetadataStore:
             by_subject[subject]["docs"] += 1
             by_subject[subject]["chunks"] += m.get("chunk_count", 0)
 
+        # 获取实际向量数量
+        actual_vectors = 0
+        try:
+            from src.storage.vector_store import get_vector_store
+            vector_store = get_vector_store()
+            actual_vectors = vector_store.count()
+        except Exception:
+            pass
+
+        # 获取实际索引数量
+        actual_index_docs = 0
+        try:
+            from src.storage.keyword_index import get_keyword_index
+            keyword_index = get_keyword_index()
+            actual_index_docs = keyword_index.count()
+        except Exception:
+            pass
+
         return {
             "total_documents": total_docs,
             "total_chunks": total_chunks,
+            "actual_vectors": actual_vectors,
+            "actual_index_docs": actual_index_docs,
             "by_subject": by_subject,
             "storage_size_mb": self._get_storage_size()
         }
 
     def _get_storage_size(self) -> float:
-        """获取存储大小（MB）"""
+        """获取存储大小（MB）- 基于实际数据估算"""
         total_size = 0
+
+        # 元数据文件大小
         for file_path in self.metadata_dir.glob("*.json"):
             total_size += file_path.stat().st_size
 
-        # 加上向量库和索引大小
-        chroma_path = Path(settings.CHROMA_PERSIST_DIR)
-        if chroma_path.exists():
-            for f in chroma_path.rglob("*"):
-                if f.is_file():
-                    total_size += f.stat().st_size
+        # 向量数据估算：每个向量约 768维 * 4字节 = 3KB，加上文档内容
+        try:
+            from src.storage.vector_store import get_vector_store
+            vector_store = get_vector_store()
+            vector_count = vector_store.count()
+            # 每个向量约3KB + 平均文档内容1KB
+            total_size += vector_count * 4 * 1024
+        except Exception:
+            pass
 
+        # BM25索引大小估算
         bm25_path = Path(settings.BM25_INDEX_DIR)
         if bm25_path.exists():
             for f in bm25_path.rglob("*"):

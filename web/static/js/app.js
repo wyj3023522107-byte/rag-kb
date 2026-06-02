@@ -176,7 +176,7 @@ async function loadHistory() {
     }
 }
 
-// 发送消息
+// 发送消息（流式）
 async function sendMessage() {
     const message = messageInput.value.trim();
     if (!message || isTyping) return;
@@ -195,34 +195,104 @@ async function sendMessage() {
     // 显示加载状态
     isTyping = true;
     sendBtn.disabled = true;
-    const loadingId = appendLoading();
+
+    // 创建助手消息容器（带光标）
+    const assistantMsg = createStreamingMessage();
 
     try {
-        // 发送请求
-        const response = await api.chat(message, sessionId);
-
-        // 保存服务器返回的session_id
-        saveSessionId(response.session_id);
-
-        // 移除加载动画
-        removeLoading(loadingId);
-
-        // 显示助手回复
-        appendMessage('assistant', response.response, {
-            intent: response.intent
+        // 使用流式API
+        const response = await fetch('/api/chat/stream', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                session_id: sessionId
+            })
         });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            // 解码并添加到缓冲区
+            buffer += decoder.decode(value, { stream: true });
+
+            // 按双换行分割消息
+            const lines = buffer.split('\n\n');
+            buffer = lines.pop() || ''; // 保留最后一个不完整的部分
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+
+                        if (data.type === 'session') {
+                            saveSessionId(data.session_id);
+                        } else if (data.type === 'content') {
+                            fullResponse += data.content;
+                            updateStreamingMessage(assistantMsg, fullResponse);
+                        } else if (data.type === 'done') {
+                            // 完成，移除光标
+                            removeCursor(assistantMsg);
+                        } else if (data.type === 'error') {
+                            updateStreamingMessage(assistantMsg, '抱歉，发生了错误：' + data.message);
+                        }
+                    } catch (e) {
+                        console.error('Parse error:', e);
+                    }
+                }
+            }
+        }
 
         // 刷新会话列表
         await loadSessionList();
 
     } catch (error) {
-        removeLoading(loadingId);
-        appendMessage('assistant', '抱歉，发生了错误，请稍后重试。');
+        removeCursor(assistantMsg);
+        updateStreamingMessage(assistantMsg, '抱歉，发生了错误，请稍后重试。');
         console.error('Chat error:', error);
     } finally {
         isTyping = false;
         sendBtn.disabled = false;
     }
+}
+
+// 创建流式消息容器（带光标动画）
+function createStreamingMessage() {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message assistant';
+
+    messageDiv.innerHTML = `
+        <div class="message-avatar">🤖</div>
+        <div class="message-content"><span class="streaming-text"></span><span class="cursor">▊</span></div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+
+    return messageDiv;
+}
+
+// 更新流式消息
+function updateStreamingMessage(messageDiv, content) {
+    const contentSpan = messageDiv.querySelector('.streaming-text');
+    if (contentSpan) {
+        contentSpan.innerHTML = renderMarkdown(content);
+        scrollToBottom();
+    }
+}
+
+// 移除光标
+function removeCursor(messageDiv) {
+    const cursor = messageDiv.querySelector('.cursor');
+    if (cursor) cursor.remove();
 }
 
 // 添加消息
@@ -253,31 +323,13 @@ function appendMessage(role, content, metadata = {}) {
     return messageDiv;
 }
 
-// 添加加载动画
-function appendLoading() {
-    const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'message assistant';
-    loadingDiv.id = 'loading-' + Date.now();
-
-    loadingDiv.innerHTML = `
-        <div class="message-avatar">🤖</div>
-        <div class="message-content">
-            <div class="typing-indicator">
-                <span></span><span></span><span></span>
-            </div>
-        </div>
-    `;
-
-    messagesContainer.appendChild(loadingDiv);
-    scrollToBottom();
-
-    return loadingDiv.id;
-}
-
-// 移除加载动画
-function removeLoading(loadingId) {
-    const loadingDiv = document.getElementById(loadingId);
-    if (loadingDiv) loadingDiv.remove();
+// 更新消息内容（用于流式更新）
+function updateMessage(messageDiv, content) {
+    const contentDiv = messageDiv.querySelector('.message-content');
+    if (contentDiv) {
+        contentDiv.innerHTML = renderMarkdown(content);
+        scrollToBottom();
+    }
 }
 
 // 新建对话

@@ -179,20 +179,26 @@ class KnowledgeManager:
         """删除文档"""
         logger.info(f"删除文档: {doc_id}")
 
-        # 1. 从元数据获取所有切片ID
+        # 1. 从元数据获取文档信息
         metadata = self.metadata_store.get(doc_id)
         if not metadata:
             return False
 
-        # 2. 从向量库删除
-        self.vector_store.delete_by_metadata({"doc_id": doc_id})
+        # 2. 先查询要删除的向量ID（删除前查询）
+        results = self.vector_store.get(where={"doc_id": doc_id})
+        chunk_ids = results.get("ids", [])
 
         # 3. 从关键词索引删除
-        results = self.vector_store.get(where={"doc_id": doc_id})
-        if results.get("ids"):
-            self.keyword_index.delete(results["ids"])
+        if chunk_ids:
+            self.keyword_index.delete(chunk_ids)
+            logger.debug(f"删除关键词索引: {len(chunk_ids)} 个")
 
-        # 4. 删除元数据
+        # 4. 从向量库删除
+        if chunk_ids:
+            self.vector_store.delete(chunk_ids)
+            logger.debug(f"删除向量: {len(chunk_ids)} 个")
+
+        # 5. 删除元数据
         self.metadata_store.delete(doc_id)
 
         logger.info(f"文档删除完成: {doc_id}")

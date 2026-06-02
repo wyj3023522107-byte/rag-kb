@@ -1,6 +1,6 @@
 import os
 from langchain_community.llms import Tongyi
-from typing import Optional, List
+from typing import Optional, List, AsyncGenerator
 from loguru import logger
 
 from config.settings import settings
@@ -27,7 +27,8 @@ class LLMClient:
             dashscope_api_key=settings.DASHSCOPE_API_KEY,
             temperature=self.temperature,
             max_tokens=self.max_tokens,
-            top_p=settings.TOP_P
+            top_p=settings.TOP_P,
+            streaming=True  # 启用流式
         )
 
         logger.info(f"LLM客户端初始化完成: model={self.model_name}")
@@ -52,6 +53,27 @@ class LLMClient:
             return response
         except Exception as e:
             logger.error(f"LLM生成失败: {e}")
+            raise
+
+    async def stream(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        stop: Optional[List[str]] = None
+    ) -> AsyncGenerator[str, None]:
+        """流式生成响应"""
+        messages = []
+
+        if system_prompt:
+            messages.append(("system", system_prompt))
+
+        messages.append(("human", prompt))
+
+        try:
+            async for chunk in self._client.astream(messages, stop=stop):
+                yield chunk
+        except Exception as e:
+            logger.error(f"LLM流式生成失败: {e}")
             raise
 
     async def classify(self, prompt: str, options: List[str]) -> str:
