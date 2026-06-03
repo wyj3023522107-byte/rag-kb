@@ -89,3 +89,14 @@ async def get_stats():
 
     manager = get_knowledge_manager()
     return manager.stats()
+
+
+@router.get("/chunks/{doc_id}")
+async def get_document_chunks(doc_id: str):
+    """获取文档的所有切片"""
+    from src.storage.vector_store import get_vector_store
+
+    vector_store = get_vector_store()
+    chunks = vector_store.get_by_doc_id(doc_id)
+
+    return {"chunks": chunks}

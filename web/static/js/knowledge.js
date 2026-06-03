@@ -148,6 +148,7 @@ async function loadDocuments() {
             <td>${doc.chunk_count}</td>
             <td>${formatDate(doc.create_time)}</td>
             <td>
+                <button class="view-btn" onclick="viewChunks('${doc.doc_id}', '${doc.filename}')">查看切片</button>
                 <button class="delete-btn" onclick="deleteDocument('${doc.doc_id}')">删除</button>
             </td>
         </tr>
@@ -190,3 +191,56 @@ function formatDate(dateStr) {
         minute: '2-digit'
     });
 }
+
+// 查看文档切片
+async function viewChunks(docId, filename) {
+    const modal = document.getElementById('chunksModal');
+    const modalTitle = document.getElementById('chunksModalTitle');
+    const modalBody = document.getElementById('chunksModalBody');
+
+    modalTitle.textContent = `文档切片 - ${filename}`;
+    modalBody.innerHTML = '<div class="loading">加载中...</div>';
+    modal.classList.add('show');
+
+    try {
+        const result = await api.getChunks(docId);
+        const chunks = result.chunks || [];
+
+        if (chunks.length === 0) {
+            modalBody.innerHTML = '<div class="empty-state">暂无切片数据</div>';
+            return;
+        }
+
+        modalBody.innerHTML = chunks.map((chunk, index) => `
+            <div class="chunk-item">
+                <div class="chunk-header">
+                    <span class="chunk-index">切片 ${index + 1}</span>
+                    <span class="chunk-id">${chunk.chunk_id.substring(0, 8)}...</span>
+                </div>
+                <div class="chunk-content">${escapeHtml(chunk.content)}</div>
+            </div>
+        `).join('');
+    } catch (error) {
+        modalBody.innerHTML = `<div class="error-state">加载失败: ${error.message}</div>`;
+    }
+}
+
+// 关闭切片模态框
+function closeChunksModal() {
+    const modal = document.getElementById('chunksModal');
+    modal.classList.remove('show');
+}
+
+// HTML转义
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// 点击模态框外部关闭
+document.getElementById('chunksModal').addEventListener('click', (e) => {
+    if (e.target.id === 'chunksModal') {
+        closeChunksModal();
+    }
+});

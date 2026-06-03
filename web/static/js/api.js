@@ -68,5 +68,11 @@ const api = {
     async getStats() {
         const response = await fetch(`${API_BASE}/knowledge/stats`);
         return response.json();
+    },
+
+    // 获取文档切片
+    async getChunks(docId) {
+        const response = await fetch(`${API_BASE}/knowledge/chunks/${docId}`);
+        return response.json();
     }
 };

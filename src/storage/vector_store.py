@@ -123,6 +123,29 @@ class VectorStore:
         """获取向量"""
         return self._collection.get(ids=ids, where=where, include=["documents", "metadatas"])
 
+    def get_by_doc_id(self, doc_id: str) -> List[Dict[str, Any]]:
+        """获取指定文档的所有切片"""
+        try:
+            results = self._collection.get(
+                where={"doc_id": doc_id},
+                include=["documents", "metadatas"]
+            )
+
+            chunks = []
+            if results["ids"]:
+                for i, chunk_id in enumerate(results["ids"]):
+                    chunks.append({
+                        "chunk_id": chunk_id,
+                        "content": results["documents"][i] if results["documents"] else "",
+                        "metadata": results["metadatas"][i] if results["metadatas"] else {}
+                    })
+
+            logger.debug(f"获取文档 {doc_id} 的 {len(chunks)} 个切片")
+            return chunks
+        except Exception as e:
+            logger.error(f"获取文档切片失败: {e}")
+            return []
+
 
 # 全局实例
 _store: Optional[VectorStore] = None
