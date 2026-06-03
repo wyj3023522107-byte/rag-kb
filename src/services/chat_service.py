@@ -428,15 +428,48 @@ class ChatService:
     async def _generate(
         self,
         prompt: str,
-        stream: bool
+        stream: bool,
+        include_history: bool = True
     ) -> AsyncGenerator[str, None]:
         """LLM生成"""
+        history = None
+        if include_history and hasattr(self, '_current_session_id') and self._current_session_id:
+            history = self._get_history()
+
         if stream:
-            async for chunk in self.llm_client.stream(prompt):
+            async for chunk in self.llm_client.stream(prompt, history=history):
                 yield chunk
         else:
-            response = await self.llm_client.generate(prompt)
+            response = await self.llm_client.generate(prompt, history=history)
             yield response
+
+    def _get_history(self, max_turns: int = 10) -> list:
+        """获取历史消息"""
+        if not hasattr(self, '_current_session_id') or not self._current_session_id:
+            return []
+
+        session = self._session_manager.get(self._current_session_id)
+        if not session or not session.messages:
+            return []
+
+        # 获取最近的N轮对话
+        messages = session.messages[-(max_turns * 2):]
+
+        # 格式化为LLM需要的格式
+        history = []
+        for msg in messages:
+            if isinstance(msg, dict):
+                history.append({
+                    "role": msg.get("role", "user"),
+                    "content": msg.get("content", "")
+                })
+            else:
+                history.append({
+                    "role": msg.role,
+                    "content": msg.content
+                })
+
+        return history
 
     def _build_context(self, docs: list) -> str:
         """构建RAG上下文"""

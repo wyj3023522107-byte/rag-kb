@@ -37,6 +37,7 @@ class LLMClient:
         self,
         prompt: str,
         system_prompt: Optional[str] = None,
+        history: Optional[List[dict]] = None,
         stop: Optional[List[str]] = None
     ) -> str:
         """生成响应"""
@@ -44,6 +45,16 @@ class LLMClient:
 
         if system_prompt:
             messages.append(("system", system_prompt))
+
+        # 添加历史消息
+        if history:
+            for msg in history:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
+                if role == "user":
+                    messages.append(("human", content))
+                elif role == "assistant":
+                    messages.append(("ai", content))
 
         messages.append(("human", prompt))
 
@@ -59,6 +70,7 @@ class LLMClient:
         self,
         prompt: str,
         system_prompt: Optional[str] = None,
+        history: Optional[List[dict]] = None,
         stop: Optional[List[str]] = None
     ) -> AsyncGenerator[str, None]:
         """流式生成响应"""
@@ -66,6 +78,16 @@ class LLMClient:
 
         if system_prompt:
             messages.append(("system", system_prompt))
+
+        # 添加历史消息
+        if history:
+            for msg in history:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
+                if role == "user":
+                    messages.append(("human", content))
+                elif role == "assistant":
+                    messages.append(("ai", content))
 
         messages.append(("human", prompt))
 
