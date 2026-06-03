@@ -245,6 +245,8 @@ async function sendMessage() {
 
                         if (data.type === 'session') {
                             saveSessionId(data.session_id);
+                        } else if (data.type === 'rag_info') {
+                            showRagDebug(assistantMsg, data.rag_info);
                         } else if (data.type === 'content') {
                             fullResponse += data.content;
                             updateStreamingMessage(assistantMsg, fullResponse);
@@ -281,7 +283,10 @@ function createStreamingMessage() {
 
     messageDiv.innerHTML = `
         <div class="message-avatar">K</div>
-        <div class="message-content"><span class="streaming-text"></span><span class="cursor">▊</span></div>
+        <div class="message-content">
+            <div class="rag-debug" style="display: none;"></div>
+            <span class="streaming-text"></span><span class="cursor">▊</span>
+        </div>
     `;
 
     messagesContainer.appendChild(messageDiv);
@@ -297,6 +302,27 @@ function updateStreamingMessage(messageDiv, content) {
         contentSpan.innerHTML = renderMarkdown(content);
         scrollToBottom();
     }
+}
+
+// 显示RAG调试信息
+function showRagDebug(messageDiv, ragInfo) {
+    const debugDiv = messageDiv.querySelector('.rag-debug');
+    if (!debugDiv || !ragInfo) return;
+
+    if (ragInfo.total === 0) {
+        debugDiv.innerHTML = `<span class="rag-debug-label">📚 知识库检索: 无相关结果</span>`;
+    } else {
+        const resultsHtml = ragInfo.results.map(r =>
+            `<span class="rag-debug-item" title="${r.preview}">${r.source} (${r.score})</span>`
+        ).join('');
+
+        debugDiv.innerHTML = `
+            <span class="rag-debug-label">📚 知识库检索: ${ragInfo.total}条结果</span>
+            <div class="rag-debug-results">${resultsHtml}</div>
+        `;
+    }
+
+    debugDiv.style.display = 'block';
 }
 
 // 移除光标

@@ -123,6 +123,21 @@ class ChatService:
         logger.info(f"学科问答: {query[:50]}...")
 
         docs = await self._rag_retrieve(query)
+
+        # 返回检索调试信息
+        rag_info = {
+            "total": len(docs),
+            "results": [
+                {
+                    "score": round(d.get('score', 0), 3),
+                    "source": d.get('metadata', {}).get('filename', '未知'),
+                    "preview": d.get('content', '')[:100] + "..."
+                }
+                for d in docs[:3]
+            ]
+        }
+        yield {"type": "rag_info", "rag_info": rag_info}
+
         full_response = ""
 
         if docs:
@@ -358,11 +373,17 @@ class ChatService:
 
         return None
 
-    async def _rag_retrieve(self, query: str, min_score: float = 0.5) -> list:
+    async def _rag_retrieve(self, query: str, min_score: float = 0.3) -> list:
         """RAG检索知识库"""
         try:
             logger.info(f"RAG检索: {query[:50]}...")
-            docs = await self.rag_engine.retrieve(query, top_k=3)
+            docs = await self.rag_engine.retrieve(query, top_k=5)
+
+            # 记录所有检索结果的分数
+            for i, doc in enumerate(docs):
+                score = doc.get('score', 0)
+                source = doc.get('metadata', {}).get('filename', '未知')
+                logger.info(f"  结果{i+1}: 分数={score:.3f}, 来源={source}")
 
             filtered_docs = [d for d in docs if d.get('score', 0) >= min_score]
 
