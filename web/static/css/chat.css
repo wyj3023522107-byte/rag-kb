@@ -5,9 +5,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--nav-height));
+  height: 100%;
   background: var(--bg-primary);
   transition: background var(--transition-slow);
+  overflow: hidden;
 }
 
 /* ===== 消息容器 ===== */

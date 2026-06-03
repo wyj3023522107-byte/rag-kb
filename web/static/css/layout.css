@@ -109,7 +109,8 @@
 .main-wrapper {
   display: flex;
   margin-top: var(--nav-height);
-  min-height: calc(100vh - var(--nav-height));
+  height: calc(100vh - var(--nav-height));
+  overflow: hidden;
 }
 
 /* ===== 侧边栏 ===== */
@@ -117,6 +118,7 @@
   width: var(--sidebar-width);
   min-width: var(--sidebar-min-width);
   max-width: var(--sidebar-max-width);
+  height: 100%;
   background: var(--bg-sidebar);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -126,6 +128,7 @@
   transition: width var(--transition), background var(--transition-slow), border-color var(--transition-slow);
   position: relative;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .sidebar-header {
