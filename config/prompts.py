@@ -85,7 +85,8 @@ QUIZ_INTENT_ANALYSIS_PROMPT = """分析用户想要什么样的题目，提取�
     "subject": "学科（数学/语文/英语/物理/化学/生物/历史/地理/政治），从问题推断",
     "topic": "题目主题或知识点（如：函数、方程、勾股定理等）",
     "difficulty": "难度推断（小学/初一/初二/初三/高一/高二/高三），如果用户没有明确说明则填 null",
-    "question_type": "题型（选择题/填空题/计算题/应用题/解答题），如果用户没有明确则填 null"
+    "question_type": "题型（选择题/填空题/计算题/应用题/解答题），如果用户没有明确则填 null",
+    "include_answer": "是否需要给出答案（true/false），如果用户说不要答案、自己思考等则为 false，默认为 true"
 }}
 ```
 
@@ -99,6 +100,7 @@ QUIZ_GENERATION_PROMPT = """你是一位专业的K12出题老师。请根据要�
 知识点: {topic}
 难度: {difficulty}
 题型: {question_type}
+是否给出答案: {include_answer}
 
 【出题原则】
 1. 题目要符合指定年级的知识水平和课程标准
@@ -112,11 +114,7 @@ QUIZ_GENERATION_PROMPT = """你是一位专业的K12出题老师。请根据要�
 **题目：**
 [题目内容]
 
-**解析：**
-[详细解析过程]
-
-**答案：**
-[最终答案]
+{answer_section}
 
 请开始出题:"""
 

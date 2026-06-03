@@ -204,7 +204,8 @@ class ChatService:
                 "query": query,
                 "subject": quiz_info.get("subject", "数学"),
                 "topic": quiz_info.get("topic", ""),
-                "question_type": quiz_info.get("question_type")
+                "question_type": quiz_info.get("question_type"),
+                "include_answer": quiz_info.get("include_answer", True)
             }
 
             prompt = ASK_GRADE_PROMPT.format(
@@ -242,7 +243,8 @@ class ChatService:
             "subject": context.get("subject", "数学"),
             "topic": context.get("topic", ""),
             "difficulty": grade,
-            "question_type": context.get("question_type")
+            "question_type": context.get("question_type"),
+            "include_answer": context.get("include_answer", True)
         }
 
         # 生成题目
@@ -255,11 +257,25 @@ class ChatService:
         stream: bool
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """生成题目"""
+        include_answer = quiz_info.get("include_answer", True)
+
+        # 根据是否需要答案决定输出格式
+        if include_answer:
+            answer_section = """**解析：**
+[详细解析过程]
+
+**答案：**
+[最终答案]"""
+        else:
+            answer_section = """（提示：如果学生需要，可以稍后再询问解析和答案）"""
+
         prompt = QUIZ_GENERATION_PROMPT.format(
             subject=quiz_info.get("subject", "数学"),
             topic=quiz_info.get("topic", "综合"),
             difficulty=quiz_info.get("difficulty", "初二"),
-            question_type=quiz_info.get("question_type", "计算题")
+            question_type=quiz_info.get("question_type", "计算题"),
+            include_answer="是" if include_answer else "否",
+            answer_section=answer_section
         )
 
         full_response = ""
@@ -343,6 +359,11 @@ class ChatService:
                 json_text = json_text.split("```")[1].split("```")[0]
 
             result = json.loads(json_text.strip())
+
+            # 设置默认值
+            if "include_answer" not in result:
+                result["include_answer"] = True
+
             return result
 
         except Exception as e:
@@ -351,7 +372,8 @@ class ChatService:
                 "subject": "数学",
                 "topic": "综合",
                 "difficulty": None,
-                "question_type": None
+                "question_type": None,
+                "include_answer": True
             }
 
     def _extract_grade(self, text: str) -> Optional[str]:
