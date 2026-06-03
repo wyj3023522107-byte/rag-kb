@@ -27,7 +27,7 @@ from config.prompts import (
 
 
 # 闲聊意图可用的工具
-CHITCHAT_TOOLS = ["get_current_time", "get_holiday_date"]
+CHITCHAT_TOOLS = ["get_current_time", "get_holiday_date", "web_search"]
 
 
 class ChatService:
@@ -334,9 +334,11 @@ class ChatService:
         try:
             response = await self.llm_client.generate(prompt)
             intent = response.strip()
+            logger.info(f"意图识别原始结果: {intent}")
 
             valid_intents = ["study_qa", "homework_help", "quiz_generation", "emotion_support", "chitchat"]
             if intent not in valid_intents:
+                logger.warning(f"意图识别结果无效，使用默认chitchat: {intent}")
                 intent = "chitchat"
 
             return intent
@@ -424,10 +426,13 @@ class ChatService:
         available_tools: list
     ) -> Optional[Dict[str, Any]]:
         """工具决策"""
+        logger.info(f"工具决策: query={query[:50]}..., 可用工具={available_tools}")
+
         all_schemas = self._tool_manager.get_all_schemas()
         tools_schema = [s for s in all_schemas if s["name"] in available_tools]
 
         if not tools_schema:
+            logger.warning("没有可用的工具schema")
             return None
 
         tools_text = ""
@@ -438,6 +443,7 @@ class ChatService:
 
         try:
             response = await self.llm_client.generate(prompt)
+            logger.info(f"工具决策LLM响应: {response.strip()[:200]}")
 
             json_text = response.strip()
             if "```json" in json_text:
@@ -446,6 +452,7 @@ class ChatService:
                 json_text = json_text.split("```")[1].split("```")[0]
 
             decision = json.loads(json_text.strip())
+            logger.info(f"工具决策结果: {decision}")
 
             if decision.get("need_tool"):
                 tool_name = decision.get("tool_name")
@@ -455,13 +462,18 @@ class ChatService:
                     tool_args["holiday_name"] = tool_args.pop("holiday")
 
                 if tool_name not in available_tools:
+                    logger.warning(f"工具 {tool_name} 不在可用列表中")
                     return None
 
-                logger.info(f"工具调用: {tool_name}({tool_args})")
+                logger.info(f"执行工具: {tool_name}({tool_args})")
                 result = await self._tool_manager.execute(tool_name, **tool_args)
 
                 if result.success:
                     return {"tool_name": tool_name, "result": result.data}
+                else:
+                    logger.error(f"工具执行失败: {result.error}")
+            else:
+                logger.info("工具决策: 不需要调用工具")
 
         except Exception as e:
             logger.error(f"工具决策失败: {e}")

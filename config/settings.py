@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     EMBEDDING_API_KEY: str = Field("", env="EMBEDDING_API_KEY")
     EMBEDDING_BASE_URL: str = Field("https://api.siliconflow.cn/v1", env="EMBEDDING_BASE_URL")
 
+    # Tavily搜索API
+    TAVILY_API_KEY: str = Field("", env="TAVILY_API_KEY")
+
     # 模型参数
     TEMPERATURE: float = 0.7
     MAX_TOKENS: int = 2048
