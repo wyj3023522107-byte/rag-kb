@@ -449,9 +449,20 @@ class ChatService:
 
     def _save_messages(self, query: str, response: str, intent: str):
         """保存消息"""
-        if hasattr(self, '_current_session_id') and self._current_session_id:
+        if not hasattr(self, '_current_session_id') or not self._current_session_id:
+            return
+
+        # 检查空值，避免数据库错误
+        if not query or not query.strip():
+            query = "[空消息]"
+        if not response or not response.strip():
+            response = "[无响应]"
+
+        try:
             self._session_manager.save_message(self._current_session_id, "user", query, intent)
             self._session_manager.save_message(self._current_session_id, "assistant", response)
+        except Exception as e:
+            logger.error(f"保存消息失败: {e}")
 
 
 # 全局实例

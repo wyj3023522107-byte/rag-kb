@@ -20,7 +20,7 @@ class SessionDB:
 
     def _init_db(self):
         """初始化数据库表"""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -52,7 +52,7 @@ class SessionDB:
     def create_session(self, session_id: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """创建会话（如果已存在则忽略）"""
         now = datetime.now().isoformat()
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
         cursor = conn.cursor()
 
         # 使用 INSERT OR IGNORE 避免重复创建
@@ -74,7 +74,7 @@ class SessionDB:
 
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """获取会话"""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -111,7 +111,7 @@ class SessionDB:
     def update_session(self, session_id: str, context: Dict[str, Any] = None):
         """更新会话"""
         now = datetime.now().isoformat()
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
         cursor = conn.cursor()
 
         if context is not None:
@@ -131,7 +131,7 @@ class SessionDB:
     def add_message(self, session_id: str, role: str, content: str, intent: str = None):
         """添加消息"""
         timestamp = datetime.now().isoformat()
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -165,7 +165,7 @@ class SessionDB:
 
     def delete_session(self, session_id: str) -> bool:
         """删除会话"""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
         cursor = conn.cursor()
 
         cursor.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
@@ -179,7 +179,7 @@ class SessionDB:
 
     def list_sessions(self, limit: int = 100) -> List[Dict[str, Any]]:
         """列出最近的会话"""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -202,7 +202,7 @@ class SessionDB:
 
     def get_stats(self) -> Dict[str, Any]:
         """获取统计信息"""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
         cursor = conn.cursor()
 
         cursor.execute("SELECT COUNT(*) FROM sessions")
