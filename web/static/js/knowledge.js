@@ -13,7 +13,6 @@ const filterSubject = document.getElementById('filterSubject');
 const totalDocs = document.getElementById('totalDocs');
 const totalChunks = document.getElementById('totalChunks');
 const storageSize = document.getElementById('storageSize');
-const subjectStats = document.getElementById('subjectStats');
 
 let selectedFile = null;
 
@@ -129,10 +128,23 @@ async function loadDocuments() {
     const result = await api.getDocuments(subject);
     const documents = result.documents || [];
 
+    // 学科标签颜色映射
+    const tagClass = {
+        '数学': 'tag-cyan',
+        '物理': 'tag-purple',
+        '化学': 'tag-blue',
+        '英语': 'tag-cyan',
+        '语文': 'tag-purple',
+        '生物': 'tag-blue',
+        '历史': 'tag-purple',
+        '地理': 'tag-cyan',
+        '政治': 'tag-blue'
+    };
+
     documentsList.innerHTML = documents.map(doc => `
         <tr>
             <td>${doc.filename}</td>
-            <td>${doc.subject}</td>
+            <td><span class="tag ${tagClass[doc.subject] || 'tag-cyan'}">${doc.subject}</span></td>
             <td>${doc.chunk_count}</td>
             <td>${formatDate(doc.create_time)}</td>
             <td>
@@ -164,16 +176,6 @@ async function loadStats() {
     totalDocs.textContent = stats.total_documents || 0;
     totalChunks.textContent = stats.total_chunks || 0;
     storageSize.textContent = (stats.storage_size_mb || 0) + ' MB';
-
-    // 学科分布
-    if (stats.by_subject) {
-        subjectStats.innerHTML = Object.entries(stats.by_subject).map(([subject, data]) => `
-            <div class="subject-stat">
-                <div class="subject-stat-name">${subject}</div>
-                <div class="subject-stat-count">${data.docs} 文档 / ${data.chunks} 切片</div>
-            </div>
-        `).join('');
-    }
 }
 
 // 格式化日期

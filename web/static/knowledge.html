@@ -4,154 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>知识库管理 - K12智能学习助手</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/css/variables.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/components.css">
     <link rel="stylesheet" href="/static/css/knowledge.css">
 </head>
 <body>
-    <div class="container">
-        <!-- 侧边栏 -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h1 class="logo">K12学习助手</h1>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <a href="/" class="logo">
+                    <span class="logo-icon">K</span>
+                    <span class="logo-text">K12学习助手</span>
+                </a>
+                <div class="nav-menu">
+                    <a href="/" class="nav-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span>对话</span>
+                    </a>
+                    <a href="/knowledge" class="nav-item active">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        <span>知识库</span>
+                    </a>
+                </div>
             </div>
-
-            <a href="/?new=true" class="new-chat-btn" id="newChatBtn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                新建对话
-            </a>
-
-            <nav class="nav-menu">
-                <a href="/" class="nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            <div class="nav-right">
+                <button class="theme-toggle" title="切换主题">
+                    <span>🌙</span>
+                    <span>暗色</span>
+                </button>
+                <a href="/?new=true" class="btn btn-primary" style="padding: 8px 16px; font-size: 12px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
-                    对话
+                    新建对话
                 </a>
-                <a href="/knowledge" class="nav-item active">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                    </svg>
-                    知识库
-                </a>
-            </nav>
-        </aside>
+            </div>
+        </nav>
 
         <!-- 主内容区域 -->
-        <main class="knowledge-main">
-            <header class="page-header">
-                <h2>知识库管理</h2>
-            </header>
+        <div class="main-wrapper">
+            <main class="knowledge-main">
+                <header class="page-header">
+                    <h2>知识库管理</h2>
+                </header>
 
-            <!-- 上传区域 -->
-            <section class="upload-section card">
-                <h3>上传文档</h3>
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
+                <!-- 上传区域 -->
+                <section class="upload-section">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📁</div>
+                        <p>拖拽文件到此处，或点击选择文件</p>
+                        <p class="upload-hint">支持: PDF, Word, TXT, Markdown</p>
+                        <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.md" hidden>
                     </div>
-                    <p>拖拽文件到此处，或点击选择文件</p>
-                    <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.md" hidden>
-                    <p class="file-types">支持: PDF, Word, TXT, Markdown</p>
-                </div>
 
-                <div class="upload-form" id="uploadForm" style="display: none;">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>学科</label>
-                            <select id="subjectSelect">
-                                <option value="数学">数学</option>
-                                <option value="语文">语文</option>
-                                <option value="英语">英语</option>
-                                <option value="物理">物理</option>
-                                <option value="化学">化学</option>
-                                <option value="生物">生物</option>
-                                <option value="历史">历史</option>
-                                <option value="地理">地理</option>
-                                <option value="政治">政治</option>
-                            </select>
+                    <div class="upload-form" id="uploadForm" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>学科</label>
+                                <select id="subjectSelect">
+                                    <option value="数学">数学</option>
+                                    <option value="语文">语文</option>
+                                    <option value="英语">英语</option>
+                                    <option value="物理">物理</option>
+                                    <option value="化学">化学</option>
+                                    <option value="生物">生物</option>
+                                    <option value="历史">历史</option>
+                                    <option value="地理">地理</option>
+                                    <option value="政治">政治</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>适用年级</label>
+                                <select id="gradeSelect" multiple>
+                                    <option value="小学">小学</option>
+                                    <option value="初一">初一</option>
+                                    <option value="初二">初二</option>
+                                    <option value="初三">初三</option>
+                                    <option value="高一">高一</option>
+                                    <option value="高二">高二</option>
+                                    <option value="高三">高三</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>文档标题</label>
+                                <input type="text" id="titleInput" placeholder="如：函数知识点总结">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>适用年级</label>
-                            <select id="gradeSelect" multiple>
-                                <option value="小学">小学</option>
-                                <option value="初一">初一</option>
-                                <option value="初二">初二</option>
-                                <option value="初三">初三</option>
-                                <option value="高一">高一</option>
-                                <option value="高二">高二</option>
-                                <option value="高三">高三</option>
-                            </select>
+                        <button class="btn btn-primary" id="uploadBtn">上传并处理</button>
+                    </div>
+                </section>
+
+                <!-- 统计信息 -->
+                <section class="stats-section">
+                    <h3>统计信息</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalDocs">0</div>
+                            <div class="stat-label">总文档数</div>
                         </div>
-                        <div class="form-group">
-                            <label>文档标题</label>
-                            <input type="text" id="titleInput" placeholder="如：函数知识点总结">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalChunks">0</div>
+                            <div class="stat-label">总切片数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="storageSize">0 MB</div>
+                            <div class="stat-label">存储大小</div>
                         </div>
                     </div>
-                    <button class="primary-btn" id="uploadBtn">上传并处理</button>
-                </div>
-            </section>
+                </section>
 
-            <!-- 文档列表 -->
-            <section class="documents-section card">
-                <div class="section-header">
-                    <h3>文档列表</h3>
-                    <select id="filterSubject" class="filter-select">
-                        <option value="">全部学科</option>
-                        <option value="数学">数学</option>
-                        <option value="物理">物理</option>
-                        <option value="化学">化学</option>
-                    </select>
-                </div>
-
-                <table class="documents-table">
-                    <thead>
-                        <tr>
-                            <th>文档名称</th>
-                            <th>学科</th>
-                            <th>切片数</th>
-                            <th>上传时间</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="documentsList">
-                        <!-- 动态加载 -->
-                    </tbody>
-                </table>
-            </section>
-
-            <!-- 统计信息 -->
-            <section class="stats-section card">
-                <h3>统计信息</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalDocs">0</div>
-                        <div class="stat-label">总文档数</div>
+                <!-- 文档列表 -->
+                <section class="documents-section">
+                    <div class="section-header">
+                        <h3>文档列表</h3>
+                        <select id="filterSubject" class="filter-select">
+                            <option value="">全部学科</option>
+                            <option value="数学">数学</option>
+                            <option value="物理">物理</option>
+                            <option value="化学">化学</option>
+                            <option value="英语">英语</option>
+                        </select>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalChunks">0</div>
-                        <div class="stat-label">总切片数</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="storageSize">0 MB</div>
-                        <div class="stat-label">存储大小</div>
-                    </div>
-                </div>
 
-                <div class="subject-stats" id="subjectStats">
-                    <!-- 动态加载学科分布 -->
-                </div>
-            </section>
-        </main>
+                    <div class="documents-table-wrapper">
+                        <table class="documents-table">
+                            <thead>
+                                <tr>
+                                    <th>文档名称</th>
+                                    <th>学科</th>
+                                    <th>切片数</th>
+                                    <th>上传时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="documentsList">
+                                <!-- 动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 
+    <!-- JavaScript -->
+    <script src="/static/js/theme.js"></script>
     <script src="/static/js/api.js"></script>
     <script src="/static/js/knowledge.js"></script>
 </body>

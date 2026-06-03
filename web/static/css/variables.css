@@ -1,0 +1,111 @@
+/* web/static/css/variables.css */
+
+/* ===== 共用强调色 ===== */
+:root {
+  --accent-cyan: #4ECDC4;
+  --accent-blue: #45B7D1;
+  --accent-purple: #5C7AEA;
+  --accent-deep-purple: #764ba2;
+
+  /* 渐变 */
+  --gradient-primary: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  --gradient-accent: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
+
+  /* 功能色 */
+  --color-success: #22c55e;
+  --color-error: #f87171;
+  --color-warning: #fbbf24;
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+
+  /* 过渡 */
+  --transition-fast: 0.15s ease;
+  --transition: 0.2s ease;
+  --transition-slow: 0.3s ease;
+
+  /* 布局 */
+  --nav-height: 56px;
+  --sidebar-width: 220px;
+  --sidebar-min-width: 160px;
+  --sidebar-max-width: 320px;
+}
+
+/* ===== 亮色模式 ===== */
+:root,
+[data-theme="light"] {
+  /* 背景 */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-nav: rgba(255, 255, 255, 0.85);
+  --bg-sidebar: rgba(248, 250, 252, 0.9);
+
+  /* 文字 */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* 边框 */
+  --border-color: #e2e8f0;
+  --border-light: rgba(0, 0, 0, 0.06);
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 4px 20px rgba(92, 122, 234, 0.25);
+
+  /* 毛玻璃 */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.06);
+}
+
+/* ===== 暗色模式 ===== */
+[data-theme="dark"] {
+  /* 背景 */
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #12121e;
+  --bg-card: rgba(30, 30, 50, 0.5);
+  --bg-nav: rgba(18, 18, 30, 0.8);
+  --bg-sidebar: rgba(20, 20, 35, 0.6);
+
+  /* 文字 */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.35);
+
+  /* 边框 */
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.06);
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 4px 20px rgba(92, 122, 234, 0.35);
+
+  /* 毛玻璃 */
+  --glass-bg: rgba(30, 30, 50, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+/* ===== 消息气泡特定变量 ===== */
+:root,
+[data-theme="light"] {
+  --user-bubble-bg: var(--gradient-primary);
+  --user-bubble-text: #ffffff;
+  --assistant-bubble-bg: #ffffff;
+  --assistant-bubble-border: var(--border-color);
+}
+
+[data-theme="dark"] {
+  --user-bubble-bg: var(--gradient-primary);
+  --user-bubble-text: #ffffff;
+  --assistant-bubble-bg: rgba(30, 30, 50, 0.5);
+  --assistant-bubble-border: rgba(255, 255, 255, 0.08);
+}

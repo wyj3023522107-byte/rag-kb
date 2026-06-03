@@ -31,7 +31,6 @@ const messagesContainer = document.getElementById('messagesContainer');
 const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendBtn');
 const newChatBtn = document.getElementById('newChatBtn');
-const clearBtn = document.getElementById('clearBtn');
 const historyList = document.getElementById('historyList');
 
 // 初始化
@@ -52,7 +51,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 绑定事件
     sendBtn.addEventListener('click', sendMessage);
     newChatBtn.addEventListener('click', newChat);
-    clearBtn.addEventListener('click', clearChat);
 
     // 回车发送
     messageInput.addEventListener('keydown', (e) => {
@@ -118,23 +116,20 @@ function renderSessionList(sessions) {
         });
 
         li.innerHTML = `
-            <div class="history-content">
-                <span class="history-title">${session.title || '新对话'}</span>
-                <span class="history-time">${time}</span>
-            </div>
-            <button class="history-delete" title="删除对话">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
+            <div class="history-item-title">${session.title || '新对话'}</div>
+            <div class="history-item-time">${time}</div>
+            <button class="history-item-delete" title="删除对话">✕</button>
         `;
 
         // 点击切换会话
-        li.querySelector('.history-content').addEventListener('click', () => switchSession(session.session_id));
+        li.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('history-item-delete')) {
+                switchSession(session.session_id);
+            }
+        });
 
         // 点击删除
-        li.querySelector('.history-delete').addEventListener('click', (e) => {
+        li.querySelector('.history-item-delete').addEventListener('click', (e) => {
             e.stopPropagation();
             deleteSession(session.session_id);
         });
@@ -354,18 +349,18 @@ function newChat() {
 
     messagesContainer.innerHTML = `
         <div class="welcome-message">
-            <div class="welcome-icon">K</div>
+            <div class="welcome-icon">🎓</div>
             <h2>你好，我是K12学习助手</h2>
             <p>我可以帮你解答学科问题、辅导作业、疏导情绪</p>
             <div class="quick-actions">
                 <button class="quick-btn" data-query="请帮我讲解勾股定理">
-                    勾股定理讲解
+                    📐 勾股定理讲解
                 </button>
                 <button class="quick-btn" data-query="这道方程题怎么做：2x + 5 = 13">
-                    作业辅导
+                    📝 作业辅导
                 </button>
                 <button class="quick-btn" data-query="最近学习压力有点大">
-                    情绪疏导
+                    💬 情绪疏导
                 </button>
             </div>
         </div>
@@ -373,14 +368,6 @@ function newChat() {
 
     bindQuickButtons();
     loadSessionList();
-}
-
-// 清空对话
-async function clearChat() {
-    if (confirm('确定要清空对话吗？')) {
-        await api.clearHistory(sessionId);
-        newChat();
-    }
 }
 
 // 滚动到底部
