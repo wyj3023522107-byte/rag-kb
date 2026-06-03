@@ -1,82 +1,70 @@
 # src/llm/embeddings.py
 
-import os
 from typing import List, Optional
 from loguru import logger
+from openai import OpenAI
 
 from config.settings import settings
 
 
 class EmbeddingClient:
-    """Embedding客户端封装"""
+    """Embedding客户端封装 - 支持硅基流动API"""
 
     def __init__(self, model_name: Optional[str] = None):
         self.model_name = model_name or settings.EMBEDDING_MODEL
         self._client = None
-        self._backend = None
+        self._init_client()
 
-        # 设置API Key
-        os.environ["DASHSCOPE_API_KEY"] = settings.DASHSCOPE_API_KEY
+    def _init_client(self):
+        """初始化OpenAI兼容客户端"""
+        api_key = settings.EMBEDDING_API_KEY
+        base_url = settings.EMBEDDING_BASE_URL
 
-        # 尝试初始化不同的后端
-        self._init_backend()
+        if not api_key:
+            raise ValueError("EMBEDDING_API_KEY 未配置，请在 .env 文件中设置")
 
-    def _init_backend(self):
-        """初始化Embedding后端"""
-        # 方案1: 尝试本地模型
-        try:
-            from sentence_transformers import SentenceTransformer
-            # 使用更小的中文模型
-            self._client = SentenceTransformer('shibing624/text2vec-base-chinese')
-            self._backend = 'local'
-            logger.info("使用本地Embedding模型: text2vec-base-chinese")
-            return
-        except Exception as e:
-            logger.debug(f"本地模型加载失败: {e}")
-
-        # 方案2: 使用DashScope
-        self._backend = 'dashscope'
-        logger.info(f"使用DashScope Embedding: {self.model_name}")
+        self._client = OpenAI(
+            api_key=api_key,
+            base_url=base_url
+        )
+        logger.info(f"Embedding客户端初始化完成: model={self.model_name}, base_url={base_url}")
 
     def embed_query(self, text: str) -> List[float]:
         """嵌入单个查询"""
-        if self._backend == 'local':
-            return self._client.encode(text).tolist()
-
-        # DashScope API
-        from dashscope.embeddings import TextEmbedding
         try:
-            response = TextEmbedding.call(
+            response = self._client.embeddings.create(
                 model=self.model_name,
                 input=text
             )
-            if response.status_code == 200:
-                return response.output['embeddings'][0]['embedding']
-            else:
-                raise Exception(f"Embedding失败: {response.code} - {response.message}")
+            embedding = response.data[0].embedding
+            logger.debug(f"成功嵌入查询，维度: {len(embedding)}")
+            return embedding
         except Exception as e:
-            logger.error(f"Embedding失败: {e}")
+            logger.error(f"Embedding查询失败: {e}")
             raise
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         """嵌入多个文档"""
-        if self._backend == 'local':
-            embeddings = self._client.encode(texts, show_progress_bar=True)
-            return [e.tolist() for e in embeddings]
+        if not texts:
+            return []
 
-        # DashScope API
-        from dashscope.embeddings import TextEmbedding
         try:
-            response = TextEmbedding.call(
-                model=self.model_name,
-                input=texts
-            )
-            if response.status_code == 200:
-                embeddings = [item['embedding'] for item in response.output['embeddings']]
-                logger.debug(f"成功嵌入 {len(texts)} 个文档")
-                return embeddings
-            else:
-                raise Exception(f"批量Embedding失败: {response.code} - {response.message}")
+            # 批量处理，每次最多100个
+            batch_size = 100
+            all_embeddings = []
+
+            for i in range(0, len(texts), batch_size):
+                batch = texts[i:i + batch_size]
+                response = self._client.embeddings.create(
+                    model=self.model_name,
+                    input=batch
+                )
+                batch_embeddings = [item.embedding for item in response.data]
+                all_embeddings.extend(batch_embeddings)
+                logger.debug(f"嵌入批次 {i // batch_size + 1}: {len(batch)} 个文档")
+
+            logger.info(f"成功嵌入 {len(all_embeddings)} 个文档")
+            return all_embeddings
         except Exception as e:
             logger.error(f"批量Embedding失败: {e}")
             raise

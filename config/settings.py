@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     CHAT_MODEL: str = "qwen-plus"
     EMBEDDING_MODEL: str = "text-embedding-v2"
 
+    # Embedding配置 (硅基流动)
+    EMBEDDING_API_KEY: str = Field("", env="EMBEDDING_API_KEY")
+    EMBEDDING_BASE_URL: str = Field("https://api.siliconflow.cn/v1", env="EMBEDDING_BASE_URL")
+
     # 模型参数
     TEMPERATURE: float = 0.7
     MAX_TOKENS: int = 2048
