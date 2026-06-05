@@ -1,4 +1,6 @@
-/* web/static/css/chat.css */
+/* ============================================
+   Chat — 聊天界面样式
+   ============================================ */
 
 /* ===== 聊天主区域 ===== */
 .chat-main {
@@ -11,23 +13,30 @@
   overflow: hidden;
 }
 
-/* ===== 消息容器 ===== */
+/* ============================================
+   消息容器
+   ============================================ */
 .messages-container {
   flex: 1;
   overflow-y: auto;
-  padding: 28px;
+  padding: 24px;
   scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ===== 欢迎消息 ===== */
+/* ============================================
+   欢迎消息
+   ============================================ */
 .welcome-message {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
-  animation: fadeIn 0.4s ease;
+  padding: 48px 20px;
+  animation: fadeInScale 0.5s ease;
   flex: 1;
+  text-align: center;
 }
 
 .welcome-icon {
@@ -38,23 +47,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 38px;
+  font-size: 36px;
   color: white;
-  box-shadow: var(--shadow-glow);
-  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3);
+  margin-bottom: 24px;
+  animation: pulse-glow 3s ease-in-out infinite;
 }
 
 .welcome-message h2 {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 26px;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
 .welcome-message p {
-  font-size: 15px;
+  font-size: var(--text-base);
   color: var(--text-secondary);
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  max-width: 400px;
+  line-height: 1.6;
 }
 
 .quick-actions {
@@ -62,15 +75,18 @@
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 600px;
+  max-width: 640px;
 }
 
-/* ===== 消息气泡 ===== */
+/* ============================================
+   消息气泡
+   ============================================ */
 .message {
   display: flex;
   margin-bottom: 20px;
-  gap: 12px;
-  animation: messageIn 0.25s ease;
+  gap: 10px;
+  animation: messageIn 0.3s ease;
+  max-width: 100%;
 }
 
 .message.user {
@@ -78,15 +94,16 @@
 }
 
 .message-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   flex-shrink: 0;
+  box-shadow: var(--shadow-xs);
 }
 
 .message.user .message-avatar {
@@ -95,22 +112,24 @@
 }
 
 .message.assistant .message-avatar {
-  background: var(--gradient-primary);
+  background: var(--gradient-accent);
   color: white;
 }
 
 .message-content {
-  max-width: 65%;
+  max-width: 68%;
   padding: 14px 18px;
   border-radius: var(--radius-xl);
   line-height: 1.65;
-  font-size: 14px;
+  font-size: var(--text-sm);
+  word-break: break-word;
 }
 
 .message.user .message-content {
-  background: var(--gradient-primary);
-  color: white;
+  background: var(--user-bubble-bg);
+  color: var(--user-bubble-text);
   border-bottom-right-radius: 6px;
+  box-shadow: var(--user-bubble-shadow);
 }
 
 .message.assistant .message-content {
@@ -118,16 +137,26 @@
   border: 1px solid var(--assistant-bubble-border);
   color: var(--text-primary);
   border-bottom-left-radius: 6px;
+  box-shadow: var(--assistant-bubble-shadow);
 }
 
-/* Markdown 内容样式 */
+/* ============================================
+   消息内容 - Markdown 样式
+   ============================================ */
 .message-content h3 {
   margin: 16px 0 10px;
   font-size: 1.05rem;
+  font-weight: 600;
 }
 
 .message-content h3:first-child {
   margin-top: 0;
+}
+
+.message-content h4 {
+  margin: 12px 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .message-content p {
@@ -139,56 +168,68 @@
 }
 
 .message-content code {
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: rgba(0, 0, 0, 0.06);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.88em;
+  color: var(--accent-primary);
 }
 
 .message.user .message-content code {
   background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .message-content pre {
-  background-color: #1e1e2e;
-  color: #cdd6f4;
+  background-color: #1a1a2e;
+  color: #e2e2f0;
   padding: 14px 16px;
   border-radius: var(--radius);
   overflow-x: auto;
   margin: 14px 0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .message-content pre code {
   background: none;
   padding: 0;
   color: inherit;
+  font-size: inherit;
 }
 
 .message-content ul,
 .message-content ol {
   margin: 10px 0;
-  padding-left: 24px;
+  padding-left: 20px;
 }
 
 .message-content li {
-  margin: 6px 0;
+  margin: 5px 0;
   line-height: 1.6;
+}
+
+.message-content li::marker {
+  color: var(--accent-primary);
 }
 
 .message-content blockquote {
   margin: 14px 0;
   padding: 10px 16px;
-  border-left: 4px solid var(--accent-cyan);
-  background: rgba(78, 205, 196, 0.05);
+  border-left: 3px solid var(--accent-teal);
+  background: var(--accent-teal-light);
   color: var(--text-secondary);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-style: italic;
 }
 
 .message-content table {
   width: 100%;
   border-collapse: collapse;
   margin: 14px 0;
-  font-size: 0.9em;
+  font-size: 0.88em;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 .message-content th,
@@ -199,31 +240,63 @@
 }
 
 .message-content th {
-  background: rgba(78, 205, 196, 0.1);
+  background: var(--bg-secondary);
   font-weight: 600;
+  font-size: 0.85em;
+  color: var(--text-secondary);
 }
 
-/* ===== 输入区域 ===== */
+.message-content a {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.message.user .message-content a {
+  color: white;
+  text-decoration: underline;
+}
+
+.message-content strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.message.user .message-content strong {
+  color: white;
+}
+
+.message-content hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 16px 0;
+}
+
+/* ============================================
+   输入区域
+   ============================================ */
 .input-container {
-  padding: 16px 24px 20px;
-  background: var(--bg-card);
+  padding: 16px 20px 20px;
+  background: linear-gradient(180deg, transparent 0%, var(--bg-card) 20%);
   border-top: 1px solid var(--border-color);
   transition: background var(--transition-slow), border-color var(--transition-slow);
 }
 
 .input-wrapper {
   display: flex;
-  gap: 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 10px 12px 10px 18px;
-  transition: all var(--transition-fast);
+  padding: 8px 10px 8px 16px;
+  transition: all var(--transition-base);
+  align-items: flex-end;
 }
 
 .input-wrapper:focus-within {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-primary-light);
+  background: var(--bg-card);
 }
 
 .input-wrapper textarea {
@@ -231,88 +304,102 @@
   border: none;
   background: transparent;
   resize: none;
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   max-height: 150px;
   color: var(--text-primary);
   outline: none;
   font-family: inherit;
+  padding: 4px 0;
 }
 
 .input-wrapper textarea::placeholder {
-  color: var(--text-muted);
+  color: var(--text-placeholder);
 }
 
 .send-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 12px 24px;
+  padding: 10px 20px;
   background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: var(--radius);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+  font-family: inherit;
+  flex-shrink: 0;
+  min-height: 40px;
 }
 
 .send-btn:hover:not(:disabled) {
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-glow);
+}
+
+.send-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
 }
 
 .send-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
-/* ===== 流式输出光标 ===== */
+/* ============================================
+   流式输出光标
+   ============================================ */
 .cursor {
   display: inline-block;
-  animation: blink 1s infinite;
+  animation: blink 1s step-end infinite;
   font-weight: bold;
-  color: var(--accent-cyan);
-  margin-left: 2px;
+  color: var(--accent-primary);
+  margin-left: 1px;
 }
 
 @keyframes blink {
-  0%, 45% { opacity: 1; }
-  50%, 95% { opacity: 0; }
-  100% { opacity: 1; }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
-/* ===== 加载动画 ===== */
+/* ============================================
+   加载动画
+   ============================================ */
 .typing-indicator {
   display: flex;
   gap: 5px;
-  padding: 18px;
+  padding: 16px 18px;
+  align-items: center;
 }
 
 .typing-indicator span {
   width: 7px;
   height: 7px;
-  background: var(--accent-cyan);
+  background: var(--accent-primary);
   border-radius: 50%;
-  animation: typing 1.2s infinite ease-in-out;
-  opacity: 0.5;
+  animation: typing 1.4s infinite ease-in-out;
+  opacity: 0.4;
 }
 
 .typing-indicator span:nth-child(2) {
-  animation-delay: 0.15s;
+  animation-delay: 0.2s;
 }
 
 .typing-indicator span:nth-child(3) {
-  animation-delay: 0.3s;
+  animation-delay: 0.4s;
 }
 
 @keyframes typing {
   0%, 60%, 100% {
     transform: translateY(0);
-    opacity: 0.5;
+    opacity: 0.4;
   }
   30% {
     transform: translateY(-6px);
@@ -320,19 +407,22 @@
   }
 }
 
-/* ===== RAG调试信息 ===== */
+/* ============================================
+   RAG 调试信息
+   ============================================ */
 .rag-debug {
   margin-bottom: 12px;
-  padding: 8px 12px;
-  background: rgba(78, 205, 196, 0.08);
+  padding: 10px 14px;
+  background: var(--color-info-bg);
   border-radius: var(--radius);
   border-left: 3px solid var(--accent-cyan);
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .rag-debug-label {
   color: var(--accent-cyan);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: var(--text-xs);
 }
 
 .rag-debug-results {
@@ -344,20 +434,23 @@
 
 .rag-debug-item {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 3px 10px;
   background: var(--bg-secondary);
-  border-radius: var(--radius);
+  border-radius: var(--radius-full);
   color: var(--text-secondary);
   font-size: 11px;
   cursor: help;
+  transition: all var(--transition-fast);
 }
 
 .rag-debug-item:hover {
-  background: var(--bg-primary);
+  background: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
-/* ===== 响应式 ===== */
+/* ============================================
+   响应式
+   ============================================ */
 @media (max-width: 768px) {
   .messages-container {
     padding: 16px;
@@ -368,16 +461,33 @@
   }
 
   .input-container {
-    padding: 12px 16px 16px;
+    padding: 12px 16px;
+  }
+
+  .welcome-message {
+    padding: 32px 16px;
+  }
+
+  .welcome-icon {
+    width: 64px;
+    height: 64px;
+    font-size: 28px;
+    border-radius: 18px;
+  }
+
+  .welcome-message h2 {
+    font-size: 22px;
   }
 
   .quick-actions {
     flex-direction: column;
     align-items: center;
+    width: 100%;
   }
 
   .quick-btn {
     width: 100%;
     max-width: 280px;
+    justify-content: center;
   }
 }
