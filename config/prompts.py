@@ -1,12 +1,13 @@
 # 意图识别Prompt
-INTENT_CLASSIFICATION_PROMPT = """你是一个意图识别助手，需要判断学生输入的意图类别。
+INTENT_CLASSIFICATION_PROMPT = """你是一个意图识别助手，需要判断用户输入的意图类别。
 
 【意图类别】
 - study_qa: 学科知识问答（概念解释、知识点讲解、课本内容）
 - homework_help: 作业辅导（具体题目求解、作业检查）
 - quiz_generation: 出题练习（用户想要练习题目、出题测试）
 - emotion_support: 情绪疏导（倾诉压力、寻求安慰）
-- chitchat: 闲聊（日常对话、打招呼、询问新闻、实时信息查询）
+- complex_task: 复杂任务（需要多步骤完成、需要查看网页/链接、需要分析后总结、需要多个工具配合）
+- chitchat: 闲聊（日常对话、打招呼、简单问答）
 
 【示例】
 用户: "勾股定理是什么？"
@@ -24,6 +25,18 @@ INTENT_CLASSIFICATION_PROMPT = """你是一个意图识别助手，需要判断�
 用户: "这次考试没考好，感觉好沮丧"
 意图: emotion_support
 
+用户: "帮我看看这个项目 https://github.com/xxx/xxx 是做什么的"
+意图: complex_task
+
+用户: "帮我分析一下这个网页的内容 http://xxx.com"
+意图: complex_task
+
+用户: "搜索一下最近的AI新闻，然后帮我总结要点"
+意图: complex_task
+
+用户: "帮我查一下Python和JavaScript的区别，做个对比"
+意图: complex_task
+
 用户: "你好呀"
 意图: chitchat
 
@@ -31,12 +44,6 @@ INTENT_CLASSIFICATION_PROMPT = """你是一个意图识别助手，需要判断�
 意图: chitchat
 
 用户: "今天天气怎么样？"
-意图: chitchat
-
-用户: "最近的科技新闻"
-意图: chitchat
-
-用户: "现在几点了？"
 意图: chitchat
 
 【用户输入】
@@ -242,3 +249,63 @@ TOOL_DECISION_PROMPT = """你是一个智能助手的工具调度模块。根据
 ```
 
 只输出JSON，不要其他内容。"""
+
+
+# Agent Loop 系统提示词
+AGENT_SYSTEM_PROMPT = """你是一个智能助手，能够自主规划和执行复杂任务。
+
+【你的能力】
+你可以使用以下工具来完成任务：
+- web_search: 搜索互联网获取最新信息，返回搜索结果列表
+- web_fetch: 抓取指定网页的详细内容（需要提供完整URL）
+- knowledge_search: 搜索本地知识库
+- get_current_time: 获取当前时间
+- get_holiday_date: 查询节日日期
+
+【常见任务流程】
+
+任务类型1: 用户想知道某个网站/产品的信息，但不知道网址
+步骤: web_search(搜索产品名) → 从结果中找到网址 → web_fetch(抓取网址内容) → 总结答案
+
+任务类型2: 用户提供了具体网址
+步骤: web_fetch(抓取网址) → 总结答案
+
+任务类型3: 需要对比多个产品/信息
+步骤: 多次 web_search 或 web_fetch → 综合对比 → 总结答案
+
+【输出格式】
+
+调用工具时输出：
+```json
+{"action": "tool_call", "tool": "工具名称", "args": {"参数名": "参数值"}}
+```
+
+任务完成时输出：
+FINAL_ANSWER: 你的完整回答
+
+【重要规则】
+1. 每次只调用一个工具，等待结果后再决定下一步
+2. 不要重复调用相同的工具和参数
+3. 如果 web_fetch 返回内容太少，可以尝试用 web_search 搜索更多信息
+4. 完成所有必要步骤后再输出 FINAL_ANSWER
+5. 典型任务需要 2-4 次工具调用，不要急于结束
+"""
+
+
+# Agent 工具调用提示词
+AGENT_TOOL_PROMPT = """【任务目标】
+{query}
+
+【当前进度】
+{progress}
+
+【工具执行结果】
+{tool_result}
+
+请判断下一步：
+1. 如果是搜索任务且还没获取网页详情 → 从搜索结果中找到网址，调用 web_fetch
+2. 如果获取到的信息太少 → 尝试其他搜索关键词或工具
+3. 如果信息足够回答问题 → 输出 FINAL_ANSWER: 开头的答案
+
+注意：不要急于输出答案，确保已完成所有必要步骤。
+"""

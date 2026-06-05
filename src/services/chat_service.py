@@ -22,7 +22,8 @@ from config.prompts import (
     CHITCHAT_PROMPT, EMOTION_SUPPORT_PROMPT, TOOL_RESULT_PROMPT,
     TOOL_DECISION_PROMPT, HOMEWORK_GUIDANCE_PROMPT, RAG_PROMPT,
     INTENT_CLASSIFICATION_PROMPT, QUIZ_INTENT_ANALYSIS_PROMPT,
-    QUIZ_GENERATION_PROMPT, ASK_GRADE_PROMPT
+    QUIZ_GENERATION_PROMPT, ASK_GRADE_PROMPT, AGENT_SYSTEM_PROMPT,
+    AGENT_TOOL_PROMPT
 )
 
 
@@ -96,6 +97,10 @@ class ChatService:
 
         elif intent == "quiz_generation":
             async for chunk in self._handle_quiz(query, stream):
+                yield chunk
+
+        elif intent == "complex_task":
+            async for chunk in self._handle_complex_task(query, stream):
                 yield chunk
 
         elif intent == "chitchat":
@@ -325,6 +330,197 @@ class ChatService:
 
         self._save_messages(query, full_response, "emotion_support")
 
+    async def _handle_complex_task(
+        self,
+        query: str,
+        stream: bool
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """
+        处理复杂任务：Agent Loop 模式
+        让 LLM 自主规划、调用工具、直到任务完成
+        """
+        logger.info(f"复杂任务: {query[:50]}...")
+
+        # Agent 可用的工具
+        agent_tools = ["web_search", "web_fetch", "knowledge_search", "get_current_time", "get_holiday_date"]
+
+        # 初始化 Agent 状态
+        progress = []  # 记录执行进度
+        called_tools = set()  # 记录已调用的工具
+        collected_info = []  # 收集到的信息
+        max_iterations = 8
+
+        # 构建 Agent 提示
+        agent_prompt = f"{AGENT_SYSTEM_PROMPT}\n\n【用户任务】\n{query}"
+
+        for iteration in range(max_iterations):
+            logger.info(f"Agent 迭代 {iteration + 1}/{max_iterations}")
+
+            # 构建 progress 信息
+            if not progress:
+                progress_text = "首次执行，还未调用任何工具"
+            else:
+                progress_text = "\n".join(progress)
+                # 添加已收集信息的摘要
+                if collected_info:
+                    progress_text += f"\n\n【已收集的关键信息】\n" + "\n".join(collected_info[-3:])
+
+            # 调用 LLM
+            full_prompt = f"{agent_prompt}\n\n【当前进度】\n{progress_text}\n\n请决定下一步："
+
+            try:
+                response = await self.llm_client.generate(full_prompt)
+                response = response.strip()
+                logger.info(f"Agent 响应: {response[:200]}...")
+
+                # 检查是否完成
+                if "FINAL_ANSWER:" in response:
+                    # 提取最终答案
+                    idx = response.find("FINAL_ANSWER:")
+                    final_answer = response[idx + 14:].strip()
+                    # 清理可能的多余内容
+                    if "\n```" in final_answer:
+                        final_answer = final_answer.split("\n```")[0]
+                    logger.info("Agent 任务完成")
+
+                    # 流式输出最终答案
+                    yield {"type": "content", "content": final_answer}
+                    self._save_messages(query, final_answer, "complex_task")
+                    return
+
+                # 解析工具调用
+                tool_call = self._parse_agent_tool_call(response)
+
+                if tool_call:
+                    tool_name = tool_call.get("tool")
+                    tool_args = tool_call.get("args", {})
+
+                    if tool_name not in agent_tools:
+                        progress.append(f"❌ 工具 '{tool_name}' 不可用")
+                        continue
+
+                    # 检查是否重复调用
+                    tool_key = f"{tool_name}:{json.dumps(tool_args, sort_keys=True)}"
+                    if tool_key in called_tools:
+                        progress.append(f"⚠️ 已经调用过 {tool_name}，请使用其他工具或直接输出答案")
+                        # 强制引导输出答案
+                        progress.append(f"\n【提示】你已经收集了足够的信息，请直接输出 FINAL_ANSWER: 开头的答案")
+                        continue
+
+                    called_tools.add(tool_key)
+
+                    # 执行工具
+                    logger.info(f"Agent 调用工具: {tool_name}({tool_args})")
+                    yield {"type": "tool_call", "tool": tool_name, "args": tool_args}
+
+                    result = await self._tool_manager.execute(tool_name, **tool_args)
+
+                    if result.success:
+                        tool_result = result.data
+                        # 截取关键信息
+                        result_preview = tool_result[:800] if len(tool_result) > 800 else tool_result
+                        progress.append(f"✓ {tool_name} 返回结果:\n{result_preview}")
+                        collected_info.append(f"[{tool_name}] {tool_result[:300]}...")
+                        yield {"type": "tool_result", "result": result_preview}
+                    else:
+                        progress.append(f"✗ {tool_name} 失败: {result.error}")
+                        yield {"type": "tool_result", "result": f"执行失败: {result.error}"}
+
+                else:
+                    # 无法解析为工具调用
+                    # 检查是否是 LLM 试图给出答案
+                    if len(response) > 100 and "```" not in response[:50]:
+                        # 可能是直接回答
+                        progress.append(f"思考: {response[:300]}")
+
+                    # 如果已经迭代多次，强制输出
+                    if iteration >= 4:
+                        # 尝试让 LLM 输出最终答案
+                        force_prompt = f"{agent_prompt}\n\n【已收集信息】\n{chr(10).join(collected_info)}\n\n请基于以上信息，直接输出最终答案（以 FINAL_ANSWER: 开头）："
+                        final_response = await self.llm_client.generate(force_prompt)
+                        if "FINAL_ANSWER:" in final_response:
+                            idx = final_response.find("FINAL_ANSWER:")
+                            final_answer = final_response[idx + 14:].strip()
+                        else:
+                            final_answer = final_response.strip()
+
+                        yield {"type": "content", "content": final_answer}
+                        self._save_messages(query, final_answer, "complex_task")
+                        return
+
+            except Exception as e:
+                logger.error(f"Agent 迭代失败: {e}")
+                progress.append(f"错误: {str(e)}")
+
+        # 达到最大迭代次数，强制总结
+        if collected_info:
+            summary_prompt = f"请基于以下信息，简洁地回答用户问题：{query}\n\n收集到的信息：\n{chr(10).join(collected_info)}"
+            final_answer = await self.llm_client.generate(summary_prompt)
+        else:
+            final_answer = "抱歉，我无法完成这个任务，请尝试简化您的问题。"
+
+        yield {"type": "content", "content": final_answer}
+        self._save_messages(query, final_answer, "complex_task")
+
+    def _parse_agent_tool_call(self, response: str) -> Optional[Dict[str, Any]]:
+        """解析 Agent 的工具调用（更宽容的解析）"""
+        try:
+            # 尝试解析 JSON
+            json_text = None
+
+            if "```json" in response:
+                json_text = response.split("```json")[1].split("```")[0]
+            elif "```" in response:
+                # 尝试提取代码块中的 JSON
+                parts = response.split("```")
+                for i, part in enumerate(parts):
+                    if i % 2 == 1 and "{" in part:  # 奇数索引是代码块
+                        json_text = part.strip()
+                        # 移除可能的语言标识
+                        if json_text.startswith("json"):
+                            json_text = json_text[4:].strip()
+                        break
+
+            if not json_text and "{" in response:
+                # 尝试直接提取 JSON
+                start = response.find("{")
+                end = response.rfind("}") + 1
+                json_text = response[start:end]
+
+            if not json_text:
+                return None
+
+            data = json.loads(json_text.strip())
+
+            # 验证并修复格式
+            action = data.get("action", "")
+
+            # 兼容多种格式
+            if action == "tool_call":
+                return {
+                    "tool": data.get("tool"),
+                    "args": data.get("args", {})
+                }
+            elif "tool" in data and "args" in data:
+                # 缺少 action 字段但有 tool 和 args
+                return {
+                    "tool": data.get("tool"),
+                    "args": data.get("args", {})
+                }
+            elif action in ["web_search", "web_fetch", "knowledge_search"]:
+                # action 直接是工具名
+                return {
+                    "tool": action,
+                    "args": data.get("args", {})
+                }
+
+        except json.JSONDecodeError as e:
+            logger.warning(f"JSON 解析失败: {e}, 原文: {response[:100]}")
+        except Exception as e:
+            logger.warning(f"解析工具调用失败: {e}")
+
+        return None
+
     # ==================== 核心方法 ====================
 
     async def _classify_intent(self, query: str) -> str:
@@ -336,7 +532,7 @@ class ChatService:
             intent = response.strip()
             logger.info(f"意图识别原始结果: {intent}")
 
-            valid_intents = ["study_qa", "homework_help", "quiz_generation", "emotion_support", "chitchat"]
+            valid_intents = ["study_qa", "homework_help", "quiz_generation", "emotion_support", "complex_task", "chitchat"]
             if intent not in valid_intents:
                 logger.warning(f"意图识别结果无效，使用默认chitchat: {intent}")
                 intent = "chitchat"

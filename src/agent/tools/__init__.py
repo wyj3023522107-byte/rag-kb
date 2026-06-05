@@ -8,6 +8,7 @@ from .time_tool import TimeTool
 from .holiday_tool import HolidayTool
 from .knowledge_tool import KnowledgeSearchTool
 from .web_search_tool import WebSearchTool
+from .web_fetch_tool import WebFetchTool
 
 
 # 注册所有工具
@@ -16,6 +17,7 @@ TOOLS: Dict[str, Type[BaseTool]] = {
     "get_holiday_date": HolidayTool,
     "knowledge_search": KnowledgeSearchTool,
     "web_search": WebSearchTool,
+    "web_fetch": WebFetchTool,
 }
 
 
