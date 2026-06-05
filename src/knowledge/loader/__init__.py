@@ -6,10 +6,11 @@ from .base import BaseLoader
 from .pdf_loader import PDFLoader
 from .docx_loader import DocxLoader
 from .txt_loader import TxtLoader
+from .excel_loader import ExcelLoader
 
 
 # 注册的加载器列表
-LOADERS = [PDFLoader, DocxLoader, TxtLoader]
+LOADERS = [PDFLoader, DocxLoader, TxtLoader, ExcelLoader]
 
 
 def get_loader(file_path: str) -> Optional[BaseLoader]:
@@ -24,4 +25,4 @@ def get_loader(file_path: str) -> Optional[BaseLoader]:
 
 def get_supported_extensions() -> list:
     """获取支持的文件扩展名"""
-    return [".pdf", ".docx", ".doc", ".txt", ".md"]
+    return [".pdf", ".docx", ".doc", ".txt", ".md", ".xlsx", ".xls"]

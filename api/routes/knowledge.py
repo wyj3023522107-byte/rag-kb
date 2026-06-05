@@ -28,7 +28,7 @@ async def upload_document(
     import os
 
     # 检查文件类型
-    allowed = [".pdf", ".docx", ".doc", ".txt", ".md"]
+    allowed = [".pdf", ".docx", ".doc", ".txt", ".md", ".xlsx", ".xls"]
     file_ext = os.path.splitext(file.filename)[1].lower()
 
     if file_ext not in allowed:

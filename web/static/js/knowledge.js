@@ -71,7 +71,7 @@ function handleFileSelect(e) {
 
 // 处理文件
 function handleFile(file) {
-    const allowedTypes = ['.pdf', '.docx', '.doc', '.txt', '.md'];
+    const allowedTypes = ['.pdf', '.docx', '.doc', '.txt', '.md', '.xlsx', '.xls'];
     const fileExt = '.' + file.name.split('.').pop().toLowerCase();
 
     if (!allowedTypes.includes(fileExt)) {
@@ -240,7 +240,7 @@ async function viewChunks(docId, filename) {
 
     modalTitle.textContent = `文档切片 - ${filename}`;
     modalBody.innerHTML = '<div class="loading">加载中...</div>';
-    modal.classList.add('show');
+    modal.classList.add('open');
 
     try {
         const result = await api.getChunks(docId);
@@ -268,7 +268,7 @@ async function viewChunks(docId, filename) {
 // 关闭切片模态框
 function closeChunksModal() {
     const modal = document.getElementById('chunksModal');
-    modal.classList.remove('show');
+    modal.classList.remove('open');
 }
 
 // HTML转义

@@ -3,6 +3,7 @@
 // 状态管理
 let sessionId = null;
 let isTyping = false;
+let isComposing = false;  // 输入法组合状态
 
 // 生成会话ID
 function generateSessionId() {
@@ -52,9 +53,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     sendBtn.addEventListener('click', sendMessage);
     newChatBtn.addEventListener('click', newChat);
 
-    // 回车发送
+    // 输入法组合事件
+    messageInput.addEventListener('compositionstart', () => {
+        isComposing = true;
+    });
+
+    messageInput.addEventListener('compositionend', () => {
+        isComposing = false;
+    });
+
+    // 回车发送（排除输入法组合状态）
     messageInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey && !isComposing && !e.isComposing) {
             e.preventDefault();
             sendMessage();
         }
