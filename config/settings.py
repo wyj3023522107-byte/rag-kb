@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     EMBEDDING_API_KEY: str = Field("", env="EMBEDDING_API_KEY")
     EMBEDDING_BASE_URL: str = Field("https://api.siliconflow.cn/v1", env="EMBEDDING_BASE_URL")
 
+    # Rerank配置 (硅基流动)
+    RERANK_API_KEY: str = Field("", env="EMBEDDING_API_KEY")  # 默认使用同一个 Key
+    RERANK_BASE_URL: str = Field("https://api.siliconflow.cn/v1", env="RERANK_BASE_URL")
+    RERANK_MODEL: str = "BAAI/bge-reranker-v2-m3"
+
     # Tavily搜索API
     TAVILY_API_KEY: str = Field("", env="TAVILY_API_KEY")
 
