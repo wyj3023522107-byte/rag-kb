@@ -95,9 +95,9 @@
 }
 
 .nav-item.active {
-  color: var(--accent-cyan);
-  background: rgba(78, 205, 196, 0.1);
-  border: 1px solid rgba(78, 205, 196, 0.25);
+  color: var(--accent-primary);
+  background: var(--accent-primary-light);
+  border: 1px solid transparent;
 }
 
 .nav-item svg {
@@ -168,7 +168,7 @@
 }
 
 .sidebar-content::-webkit-scrollbar-thumb:hover {
-  background-color: var(--accent-cyan);
+  background-color: var(--accent-primary);
 }
 
 /* 拖拽手柄 */
@@ -185,7 +185,7 @@
 
 .resize-handle:hover,
 .resize-handle.active {
-  background: var(--accent-cyan);
+  background: var(--accent-primary);
 }
 
 /* 侧边栏折叠状态 */

@@ -5,9 +5,11 @@ const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const uploadForm = document.getElementById('uploadForm');
 const uploadBtn = document.getElementById('uploadBtn');
+const cancelBtn = document.getElementById('cancelBtn');
 const subjectSelect = document.getElementById('subjectSelect');
 const gradeSelect = document.getElementById('gradeSelect');
 const titleInput = document.getElementById('titleInput');
+const autoClassifyCheckbox = document.getElementById('autoClassify');
 const documentsList = document.getElementById('documentsList');
 const filterSubject = document.getElementById('filterSubject');
 const totalDocs = document.getElementById('totalDocs');
@@ -46,6 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 上传按钮
     uploadBtn.addEventListener('click', uploadDocument);
 
+    // 取消按钮
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', resetUploadForm);
+    }
+
     // 学科筛选
     filterSubject.addEventListener('change', loadDocuments);
 
@@ -75,6 +82,9 @@ function handleFile(file) {
     selectedFile = file;
     uploadArea.style.display = 'none';
     uploadForm.style.display = 'block';
+
+    // 显示选中的文件名
+    document.getElementById('selectedFileName').textContent = file.name;
     titleInput.value = file.name.replace(/\.[^/.]+$/, '');
 }
 
@@ -84,20 +94,37 @@ async function uploadDocument() {
 
     const formData = new FormData();
     formData.append('file', selectedFile);
-    formData.append('subject', subjectSelect.value);
+
+    // 分类：如果选择了具体分类则使用，否则留空让后端自动识别
+    if (subjectSelect.value) {
+        formData.append('subject', subjectSelect.value);
+    }
+
     formData.append('title', titleInput.value || selectedFile.name);
 
     // 获取选中的年级
     const selectedGrades = Array.from(gradeSelect.selectedOptions).map(opt => opt.value);
     selectedGrades.forEach(grade => formData.append('grade', grade));
 
+    // 智能分类开关
+    formData.append('auto_classify', autoClassifyCheckbox.checked);
+
     uploadBtn.disabled = true;
-    uploadBtn.textContent = '处理中...';
+    uploadBtn.innerHTML = '处理中...';
 
     try {
         const result = await api.uploadDocument(formData);
         if (result.status === 'success') {
-            alert(`上传成功！文档ID: ${result.doc_id}, 切片数: ${result.chunk_count}`);
+            let message = `上传成功！\n`;
+            message += `文档: ${result.filename}\n`;
+            message += `切片数: ${result.chunk_count}\n`;
+
+            // 显示智能分类结果
+            if (result.auto_classified && result.category) {
+                message += `自动识别分类: ${result.category}`;
+            }
+
+            alert(message);
             // 重置表单
             resetUploadForm();
             // 刷新列表
@@ -110,7 +137,14 @@ async function uploadDocument() {
         alert('上传失败: ' + error.message);
     } finally {
         uploadBtn.disabled = false;
-        uploadBtn.textContent = '上传并处理';
+        uploadBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            上传
+        `;
     }
 }
 
@@ -130,15 +164,21 @@ async function loadDocuments() {
 
     // 学科标签颜色映射
     const tagClass = {
-        '数学': 'tag-cyan',
-        '物理': 'tag-purple',
-        '化学': 'tag-blue',
+        '数学': 'tag-purple',
+        '物理': 'tag-blue',
+        '化学': 'tag-emerald',
         '英语': 'tag-cyan',
-        '语文': 'tag-purple',
-        '生物': 'tag-blue',
-        '历史': 'tag-purple',
+        '语文': 'tag-rose',
+        '生物': 'tag-emerald',
+        '历史': 'tag-amber',
         '地理': 'tag-cyan',
-        '政治': 'tag-blue'
+        '政治': 'tag-purple',
+        '公司文档': 'tag-blue',
+        '技术文档': 'tag-purple',
+        '产品文档': 'tag-cyan',
+        '研究报告': 'tag-amber',
+        '政策法规': 'tag-rose',
+        '其他': 'tag-blue'
     };
 
     documentsList.innerHTML = documents.map(doc => `

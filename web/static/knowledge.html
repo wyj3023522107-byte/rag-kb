@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>知识库管理 - K12智能学习助手</title>
+    <title>知识库管理 - 智能学习助手</title>
     <!-- CSS -->
     <link rel="stylesheet" href="/static/css/variables.css">
     <link rel="stylesheet" href="/static/css/base.css">
@@ -17,8 +17,8 @@
         <nav class="top-nav">
             <div class="nav-left">
                 <a href="/" class="logo">
-                    <span class="logo-icon">K</span>
-                    <span class="logo-text">K12学习助手</span>
+                    <span class="logo-icon">📚</span>
+                    <span class="logo-text">智能助手</span>
                 </a>
                 <div class="nav-menu">
                     <a href="/" class="nav-item">
@@ -46,7 +46,7 @@
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
-                    新建对话
+                    新对话
                 </a>
             </div>
         </nav>
@@ -54,24 +54,61 @@
         <!-- 主内容区域 -->
         <div class="main-wrapper">
             <main class="knowledge-main">
-                <header class="page-header">
-                    <h2>知识库管理</h2>
-                </header>
+                <!-- 页面标题 + 统计信息 -->
+                <div class="page-header-row">
+                    <div class="page-header-left">
+                        <h2>知识库</h2>
+                        <p class="page-subtitle">上传文档，构建专属知识库</p>
+                    </div>
+                    <div class="page-stats">
+                        <div class="stat-item">
+                            <span class="stat-num" id="totalDocs">0</span>
+                            <span class="stat-label">文档</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-num" id="totalChunks">0</span>
+                            <span class="stat-label">切片</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-num" id="storageSize">0</span>
+                            <span class="stat-label">MB</span>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- 上传区域 -->
                 <section class="upload-section">
                     <div class="upload-area" id="uploadArea">
-                        <div class="upload-icon">📁</div>
-                        <p>拖拽文件到此处，或点击选择文件</p>
-                        <p class="upload-hint">支持: PDF, Word, TXT, Markdown</p>
-                        <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.md" hidden>
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                            </div>
+                            <div class="upload-text">
+                                <p class="upload-main-text">拖拽文件到此处，或 <span class="upload-link">点击上传</span></p>
+                                <p class="upload-hint">支持 PDF、Word、TXT、Markdown 格式</p>
+                            </div>
+                        </div>
+                        <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" hidden>
                     </div>
 
                     <div class="upload-form" id="uploadForm" style="display: none;">
-                        <div class="form-row">
+                        <div class="selected-file">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <span id="selectedFileName">文件名.pdf</span>
+                        </div>
+
+                        <div class="form-grid">
                             <div class="form-group">
-                                <label>学科</label>
+                                <label>分类</label>
                                 <select id="subjectSelect">
+                                    <option value="" selected>自动识别</option>
                                     <option value="数学">数学</option>
                                     <option value="语文">语文</option>
                                     <option value="英语">英语</option>
@@ -81,10 +118,16 @@
                                     <option value="历史">历史</option>
                                     <option value="地理">地理</option>
                                     <option value="政治">政治</option>
+                                    <option value="公司文档">公司文档</option>
+                                    <option value="技术文档">技术文档</option>
+                                    <option value="产品文档">产品文档</option>
+                                    <option value="研究报告">研究报告</option>
+                                    <option value="政策法规">政策法规</option>
+                                    <option value="其他">其他</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>适用年级</label>
+                                <label>年级</label>
                                 <select id="gradeSelect" multiple>
                                     <option value="小学">小学</option>
                                     <option value="初一">初一</option>
@@ -96,29 +139,28 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>文档标题</label>
-                                <input type="text" id="titleInput" placeholder="如：函数知识点总结">
+                                <label>标题</label>
+                                <input type="text" id="titleInput" placeholder="默认使用文件名">
                             </div>
                         </div>
-                        <button class="btn btn-primary" id="uploadBtn">上传并处理</button>
-                    </div>
-                </section>
 
-                <!-- 统计信息 -->
-                <section class="stats-section">
-                    <h3>统计信息</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-value" id="totalDocs">0</div>
-                            <div class="stat-label">总文档数</div>
+                        <div class="form-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoClassify" checked>
+                                <span>智能分类（自动识别类型、关键词）</span>
+                            </label>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="totalChunks">0</div>
-                            <div class="stat-label">总切片数</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="storageSize">0 MB</div>
-                            <div class="stat-label">存储大小</div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" id="cancelBtn">取消</button>
+                            <button class="btn btn-primary" id="uploadBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                上传
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -127,28 +169,48 @@
                 <section class="documents-section">
                     <div class="section-header">
                         <h3>文档列表</h3>
-                        <select id="filterSubject" class="filter-select">
-                            <option value="">全部学科</option>
-                            <option value="数学">数学</option>
-                            <option value="物理">物理</option>
-                            <option value="化学">化学</option>
-                            <option value="英语">英语</option>
-                        </select>
+                        <div class="section-actions">
+                            <select id="filterSubject" class="filter-select">
+                                <option value="">全部分类</option>
+                                <option value="未分类">未分类</option>
+                                <option value="数学">数学</option>
+                                <option value="语文">语文</option>
+                                <option value="英语">英语</option>
+                                <option value="物理">物理</option>
+                                <option value="化学">化学</option>
+                                <option value="生物">生物</option>
+                                <option value="历史">历史</option>
+                                <option value="地理">地理</option>
+                                <option value="政治">政治</option>
+                                <option value="公司文档">公司文档</option>
+                                <option value="技术文档">技术文档</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="documents-table-wrapper">
                         <table class="documents-table">
                             <thead>
                                 <tr>
-                                    <th>文档名称</th>
-                                    <th>学科</th>
-                                    <th>切片数</th>
-                                    <th>上传时间</th>
-                                    <th>操作</th>
+                                    <th class="col-name">文档名称</th>
+                                    <th class="col-category">分类</th>
+                                    <th class="col-chunks">切片</th>
+                                    <th class="col-time">上传时间</th>
+                                    <th class="col-actions">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="documentsList">
-                                <!-- 动态加载 -->
+                                <tr class="empty-row">
+                                    <td colspan="5">
+                                        <div class="empty-content">
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                            </svg>
+                                            <p>暂无文档，上传开始构建知识库</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

@@ -9,11 +9,20 @@ router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    subject: str = Form(...),
+    subject: Optional[str] = Form(default=None),
     grade: List[str] = Form(default=[]),
-    title: str = Form(default="")
+    title: str = Form(default=""),
+    auto_classify: bool = Form(default=True)
 ):
-    """上传文档"""
+    """上传文档
+
+    参数:
+    - file: 上传的文件 (PDF/DOCX/TXT/MD)
+    - subject: 科目/分类 (可选，不填则自动识别)
+    - grade: 适用年级 (可选)
+    - title: 文档标题 (可选，默认使用文件名)
+    - auto_classify: 是否启用智能分类 (默认 True)
+    """
     from src.knowledge.manager import get_knowledge_manager
     import tempfile
     import os
@@ -35,15 +44,20 @@ async def upload_document(
         manager = get_knowledge_manager()
         result = await manager.upload(
             file_path=tmp_path,
+            original_filename=file.filename,  # 传入原始文件名
             subject=subject,
             grade_range=grade,
-            title=title or file.filename
+            title=title or file.filename,
+            auto_classify=auto_classify
         )
 
         return {
             "status": "success",
             "doc_id": result.doc_id,
-            "chunk_count": result.chunk_count
+            "chunk_count": result.chunk_count,
+            "filename": result.filename,
+            "category": result.category,
+            "auto_classified": result.auto_classified
         }
     finally:
         os.unlink(tmp_path)
